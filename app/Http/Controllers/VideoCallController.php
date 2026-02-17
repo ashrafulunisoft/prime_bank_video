@@ -93,18 +93,8 @@ class VideoCallController extends Controller
                 ]);
             }
 
-            // Find available agent
-            $agent = Agent::where('status', 'free')
-                ->orderBy('average_rating', 'desc')
-                ->first();
-
-            if ($agent) {
-                // Connect directly
-                return $this->connectToAgent($user, $agent);
-            } else {
-                // Add to queue
-                return $this->addToQueue($user);
-            }
+            // Always add customer to queue first
+            return $this->addToQueue($user);
         } catch (\Exception $e) {
             Log::error('Video call request error', [
                 'user_id' => Auth::id(),
