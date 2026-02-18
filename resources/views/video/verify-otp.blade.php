@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.receptionist')
 
 @section('title', 'Verify OTP - Video Call Support')
 
