@@ -4,6 +4,23 @@
 
 @push('styles')
 <style>
+    :root {
+        --bg-page: linear-gradient(135deg, #0bd696 0%, #0d5540 100%);
+        --sidebar-bg: #0a3d2a;
+        --accent-green: #0bd696;
+        --accent-dark-green: #0d5540;
+        --text-muted: #a8e6cf;
+    }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background: var(--bg-page);
+        background-attachment: fixed;
+        min-height: 100vh;
+        color: #fff;
+        margin: 0;
+    }
+    
     .video-container {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -29,11 +46,13 @@
         position: absolute;
         bottom: 10px;
         left: 10px;
-        background: rgba(0,0,0,0.7);
+        background: rgba(13, 85, 64, 0.8);
         color: white;
         padding: 5px 15px;
         border-radius: 20px;
         font-size: 14px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
     
     .controls {
@@ -41,7 +60,10 @@
         justify-content: center;
         gap: 15px;
         padding: 20px;
-        background: #f8f9fa;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
         margin-top: 20px;
     }
@@ -62,27 +84,30 @@
     }
     
     .control-btn.active {
-        background: #28a745;
+        background: #0bd696;
         color: white;
     }
     
     .control-btn.inactive {
-        background: #6c757d;
+        background: rgba(13, 85, 64, 0.6);
         color: white;
     }
     
     .chat-panel {
-        background: #fff;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
         border-radius: 12px;
-        border: 1px solid #e9ecef;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
         flex-direction: column;
     }
     
     .chat-header {
         padding: 15px;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         font-weight: bold;
+        color: #fff;
     }
     
     .chat-messages {
@@ -99,18 +124,19 @@
     }
     
     .chat-message.sent {
-        background: #007bff;
+        background: #0bd696;
         color: white;
         margin-left: auto;
     }
     
     .chat-message.received {
-        background: #e9ecef;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
     }
     
     .chat-input {
         padding: 15px;
-        border-top: 1px solid #e9ecef;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
         gap: 10px;
     }
@@ -118,17 +144,22 @@
     .chat-input input {
         flex: 1;
         padding: 12px;
-        border: 1px solid #ddd;
+        border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 25px;
         outline: none;
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
     }
     
     .status-card {
-        background: white;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
         padding: 20px;
         margin-bottom: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(11, 214, 150, 0.05);
     }
     
     .status-indicator {
@@ -139,9 +170,9 @@
         margin-right: 10px;
     }
     
-    .status-free { background: #28a745; }
+    .status-free { background: #0bd696; }
     .status-busy { background: #dc3545; }
-    .status-offline { background: #6c757d; }
+    .status-offline { background: #0d5540; }
     
     .stats-grid {
         display: grid;
@@ -151,7 +182,10 @@
     }
     
     .stat-card {
-        background: white;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
         padding: 20px;
         text-align: center;
@@ -160,12 +194,16 @@
     .stat-value {
         font-size: 36px;
         font-weight: bold;
-        color: #007bff;
+        color: #0bd696;
     }
     
     .stat-label {
-        color: #6c757d;
+        color: #a8e6cf;
         font-size: 14px;
+    }
+    
+    .text-muted {
+        color: #fff !important;
     }
 </style>
 @endpush
