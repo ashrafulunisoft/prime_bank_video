@@ -190,6 +190,21 @@
         </div>
     </div>
 
+    <!-- Video Call Support Section - Only for Visitors -->
+    @if(auth()->user()->hasRole('visitor'))
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4 text-center">
+                <h3 class="fw-800 mb-2" style="color: #fff;"><i class="fas fa-video me-2" style="color: #3b82f6;"></i>Video Call Support</h3>
+                <p class="text-muted mb-3" style="color: #94a3b8;">Connect with a customer care representative via video call</p>
+                <a href="{{ route('video.call') }}" class="btn btn-primary btn-lg px-5">
+                    <i class="fas fa-phone-alt me-2"></i>Start Video Call
+                </a>
+            </div>
+        </div>
+    </div>
+    @endif
+
     @if(auth()->user()->hasRole('visitor') || auth()->user()->hasRole('receptionist'))
     <!-- Stats Overview Row 1 - Video Call Analytics -->
     <div class="row g-4 mb-4">
