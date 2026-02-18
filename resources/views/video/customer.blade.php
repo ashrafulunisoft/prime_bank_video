@@ -367,7 +367,13 @@
         // Show call interface
         document.getElementById('request-section').style.display = 'none';
         document.getElementById('call-interface').style.display = 'block';
-        
+
+        // Load existing chat messages
+        await loadChatMessages();
+
+        // Start polling for new messages
+        startChatPolling();
+
         // Start timer
         startCallTimer();
     }
@@ -494,25 +500,112 @@
     async function sendMessage() {
         const input = document.getElementById('chat-input');
         const message = input.value.trim();
-        
-        if (message) {
-            // Add to UI
-            addChatMessage(message, 'sent');
-            
-            // Send via RTM (placeholder - implement with Agora RTM)
-            console.log('Sending message:', message);
-            
-            input.value = '';
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+        if (message && sessionId) {
+            try {
+                const response = await fetch('/video/chat/send', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Add to UI immediately
+                    addChatMessage(message, 'sent', data.message.sender_name);
+                    input.value = '';
+                } else {
+                    console.error('Failed to send message:', data.error);
+                    alert('Failed to send message: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Error sending message: ' + error.message);
+            }
         }
     }
 
-    function addChatMessage(message, type) {
+    // Get Chat Messages
+    async function loadChatMessages() {
+        if (!sessionId) return;
+
+        try {
+            const response = await fetch(`/video/chat/messages?session_id=${sessionId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                const messagesDiv = document.getElementById('chat-messages');
+                messagesDiv.innerHTML = '';
+
+                data.messages.forEach(msg => {
+                    const type = msg.sender_type === 'customer' ? 'sent' : 'received';
+                    addChatMessage(msg.message, type, msg.sender_name);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading messages:', error);
+        }
+    }
+
+    // Poll for new messages
+    function startChatPolling() {
+        setInterval(async () => {
+            if (!sessionId) return;
+
+            try {
+                const response = await fetch(`/video/chat/messages?session_id=${sessionId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    // Get current message count
+                    const messagesDiv = document.getElementById('chat-messages');
+                    const currentMessages = messagesDiv.querySelectorAll('.chat-message');
+                    const currentCount = currentMessages.length;
+
+                    if (data.messages.length > currentCount) {
+                        // New messages received
+                        data.messages.slice(currentCount).forEach(msg => {
+                            const type = msg.sender_type === 'customer' ? 'sent' : 'received';
+                            addChatMessage(msg.message, type, msg.sender_name);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling chat:', error);
+            }
+        }, 2000); // Poll every 2 seconds
+    }
+
+    function addChatMessage(message, type, senderName = null) {
         const messagesDiv = document.getElementById('chat-messages');
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${type}`;
-        messageDiv.textContent = message;
+
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        if (senderName) {
+            messageDiv.innerHTML = `<strong style="font-size: 11px; display: block; margin-bottom: 3px;">${senderName} • ${time}</strong>${escapeHtml(message)}`;
+        } else {
+            messageDiv.innerHTML = `<span>${escapeHtml(message)}</span><span style="font-size: 10px; display: block; margin-top: 3px; opacity: 0.7;">${time}</span>`;
+        }
+
         messagesDiv.appendChild(messageDiv);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     function handleChatKeypress(event) {

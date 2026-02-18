@@ -8,6 +8,7 @@ use App\Models\CallSession;
 use App\Models\CallFeedback;
 use App\Models\CallMetric;
 use App\Models\VideoCallOtp;
+use App\Models\VideoCallChat;
 use App\Services\AgoraService;
 use App\Services\SmsNotificationService;
 use Illuminate\Http\Request;
@@ -892,6 +893,152 @@ class VideoCallController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Queue request cancelled.',
+        ]);
+    }
+
+    // ============ CHAT METHODS ============
+
+    /**
+     * Send a chat message in a video call session.
+     */
+    public function sendChatMessage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'session_id' => 'required|exists:call_sessions,id',
+            'message' => 'required|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()->first()], 422);
+        }
+
+        $user = Auth::user();
+        $sessionId = $request->input('session_id');
+        $message = $request->input('message');
+
+        // Verify session exists and user is part of it
+        $session = CallSession::find($sessionId);
+        if (!$session) {
+            return response()->json(['error' => 'Session not found.'], 404);
+        }
+
+        // Check if user is customer or agent in this session
+        $isCustomer = $session->user_id === $user->id;
+        $isAgent = $session->agent_id && $session->agent->user_id === $user->id;
+
+        if (!$isCustomer && !$isAgent) {
+            return response()->json(['error' => 'You are not part of this call session.'], 403);
+        }
+
+        // Determine sender type
+        $senderType = $isCustomer ? 'customer' : 'agent';
+
+        // Create chat message
+        $chat = VideoCallChat::create([
+            'call_session_id' => $sessionId,
+            'sender_id' => $user->id,
+            'sender_type' => $senderType,
+            'message' => $message,
+            'is_read' => false,
+        ]);
+
+        Log::info('Chat message sent', [
+            'session_id' => $sessionId,
+            'sender_id' => $user->id,
+            'sender_type' => $senderType,
+            'message_length' => strlen($message),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => [
+                'id' => $chat->id,
+                'session_id' => $sessionId,
+                'sender_id' => $user->id,
+                'sender_name' => $user->name,
+                'sender_type' => $senderType,
+                'message' => $message,
+                'created_at' => $chat->created_at->toISOString(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get chat messages for a video call session.
+     */
+    public function getChatMessages(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'session_id' => 'required|exists:call_sessions,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()->first()], 422);
+        }
+
+        $user = Auth::user();
+        $sessionId = $request->input('session_id');
+
+        // Verify session exists
+        $session = CallSession::find($sessionId);
+        if (!$session) {
+            return response()->json(['error' => 'Session not found.'], 404);
+        }
+
+        // Check if user is part of this session
+        $isCustomer = $session->user_id === $user->id;
+        $isAgent = $session->agent_id && $session->agent->user_id === $user->id;
+
+        if (!$isCustomer && !$isAgent) {
+            return response()->json(['error' => 'You are not part of this call session.'], 403);
+        }
+
+        // Get all messages
+        $messages = VideoCallChat::forSession($sessionId);
+
+        // Format messages for frontend
+        $formattedMessages = $messages->map(function ($msg) {
+            return [
+                'id' => $msg->id,
+                'sender_id' => $msg->sender_id,
+                'sender_name' => $msg->sender->name ?? 'Unknown',
+                'sender_type' => $msg->sender_type,
+                'message' => $msg->message,
+                'is_read' => $msg->is_read,
+                'created_at' => $msg->created_at->toISOString(),
+            ];
+        });
+
+        // Mark messages from other user as read
+        VideoCallChat::markAllAsRead($sessionId, $user->id);
+
+        return response()->json([
+            'success' => true,
+            'messages' => $formattedMessages,
+        ]);
+    }
+
+    /**
+     * Get unread message count for a session.
+     */
+    public function getUnreadCount(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'session_id' => 'required|exists:call_sessions,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()->first()], 422);
+        }
+
+        $user = Auth::user();
+        $sessionId = $request->input('session_id');
+
+        $count = VideoCallChat::unreadCount($sessionId, $user->id);
+
+        return response()->json([
+            'success' => true,
+            'unread_count' => $count,
         ]);
     }
 }

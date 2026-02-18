@@ -384,6 +384,121 @@
         document.getElementById('next-call-section').style.display = 'none';
         document.getElementById('call-interface').style.display = 'block';
         document.getElementById('remote-label').textContent = data.customer_name || 'Customer';
+
+        // Load existing chat messages
+        await loadChatMessages();
+
+        // Start polling for new messages
+        startChatPolling();
+    }
+
+    // Load Chat Messages
+    async function loadChatMessages() {
+        if (!sessionId) return;
+
+        try {
+            const response = await fetch(`/video/chat/messages?session_id=${sessionId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                const messagesDiv = document.getElementById('chat-messages');
+                messagesDiv.innerHTML = '';
+
+                data.messages.forEach(msg => {
+                    const type = msg.sender_type === 'agent' ? 'sent' : 'received';
+                    addChatMessage(msg.message, type, msg.sender_name);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading messages:', error);
+        }
+    }
+
+    // Poll for new messages
+    function startChatPolling() {
+        setInterval(async () => {
+            if (!sessionId) return;
+
+            try {
+                const response = await fetch(`/video/chat/messages?session_id=${sessionId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const messagesDiv = document.getElementById('chat-messages');
+                    const currentMessages = messagesDiv.querySelectorAll('.chat-message');
+                    const currentCount = currentMessages.length;
+
+                    if (data.messages.length > currentCount) {
+                        data.messages.slice(currentCount).forEach(msg => {
+                            const type = msg.sender_type === 'agent' ? 'sent' : 'received';
+                            addChatMessage(msg.message, type, msg.sender_name);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling chat:', error);
+            }
+        }, 2000);
+    }
+
+    // Send Chat Message
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+        if (message && sessionId) {
+            try {
+                const response = await fetch('/video/chat/send', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    addChatMessage(message, 'sent', data.message.sender_name);
+                    input.value = '';
+                } else {
+                    console.error('Failed to send message:', data.error);
+                    alert('Failed to send message: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Error sending message: ' + error.message);
+            }
+        }
+    }
+
+    function addChatMessage(message, type, senderName = null) {
+        const messagesDiv = document.getElementById('chat-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${type}`;
+
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        if (senderName) {
+            messageDiv.innerHTML = `<strong style="font-size: 11px; display: block; margin-bottom: 3px;">${senderName} • ${time}</strong>${escapeHtml(message)}`;
+        } else {
+            messageDiv.innerHTML = `<span>${escapeHtml(message)}</span><span style="font-size: 10px; display: block; margin-top: 3px; opacity: 0.7;">${time}</span>`;
+        }
+
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     async function initAgora(appId) {
@@ -449,23 +564,6 @@
                 console.error('Screen share error:', error);
             }
         }
-    }
-
-    function sendMessage() {
-        const input = document.getElementById('chat-input');
-        const message = input.value.trim();
-        if (message) {
-            addChatMessage(message, 'sent');
-            console.log('Sending:', message);
-            input.value = '';
-        }
-    }
-
-    function addChatMessage(message, type) {
-        const div = document.createElement('div');
-        div.className = `chat-message ${type}`;
-        div.textContent = message;
-        document.getElementById('chat-messages').appendChild(div);
     }
 
     function handleChatKeypress(event) {
