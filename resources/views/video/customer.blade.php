@@ -220,9 +220,11 @@
 
 @push('scripts')
 <script>
-    // State
+    // State - Using separate variables for proper track management
     let client = null;
-    let localTracks = [];
+    let localAudioTrack = null;
+    let localVideoTrack = null;
+    let localScreenTrack = null;
     let remoteTracks = {};
     let channel = null;
     let uid = null;
@@ -232,18 +234,23 @@
     let sessionId = null;
     let queueId = null;
     let callTimer = null;
+    let queuePollingInterval = null;
 
-    // Initialize
+    // Initialize Agora Client
     async function initAgora() {
         const agoraAppId = '{{ config("services.agora.app_id") }}';
         client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
         
+        // Handle remote user publishing (video/audio/screen)
         client.on('user-published', async (user, mediaType) => {
+            console.log('Remote user published:', user.uid, mediaType);
+            
             await client.subscribe(user, mediaType);
+            
             if (mediaType === 'video') {
                 remoteTracks[user.uid] = user.videoTrack;
                 user.videoTrack.play('remote-video');
-                document.getElementById('remote-label').textContent = 'Agent';
+                document.getElementById('remote-label').textContent = 'Agent (Screen or Video)';
             }
             if (mediaType === 'audio') {
                 remoteTracks[user.uid] = user.audioTrack;
@@ -251,11 +258,17 @@
             }
         });
 
-        client.on('user-unpublished', (user) => {
+        client.on('user-unpublished', (user, mediaType) => {
+            console.log('Remote user unpublished:', user.uid, mediaType);
+            if (mediaType === 'video') {
+                const remoteContainer = document.getElementById('remote-video');
+                remoteContainer.innerHTML = '';
+            }
             delete remoteTracks[user.uid];
         });
 
         client.on('user-left', (user) => {
+            console.log('Remote user left:', user.uid);
             delete remoteTracks[user.uid];
             showFeedback();
         });
@@ -263,7 +276,6 @@
 
     // Request Call
     async function requestCall() {
-        // Check if Agora SDK is loaded
         if (typeof AgoraRTC === 'undefined') {
             alert('Video call SDK not loaded. Please refresh the page or check your internet connection.');
             console.error('AgoraRTC is undefined. SDK failed to load from CDN.');
@@ -293,7 +305,6 @@
             const responseText = await response.text();
             console.log('Response text preview:', responseText.substring(0, 500));
             
-            // Check if response is HTML (error page)
             if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
                 alert('Server returned HTML error page (Status: ' + response.status + '). Check console for details.');
                 console.error('Full HTML response:', responseText);
@@ -316,7 +327,6 @@
             }
             
             if (data.type === 'redirect') {
-                // Redirect to OTP verification page
                 window.location.href = data.redirect_url;
             } else if (data.type === 'connect') {
                 await joinChannel(data);
@@ -336,10 +346,6 @@
     // Join Channel
     async function joinChannel(data) {
         console.log('Joining channel with data:', data);
-        console.log('App ID:', data.app_id);
-        console.log('Channel:', data.channel);
-        console.log('UID:', data.uid);
-        console.log('Token:', data.token ? 'present' : 'missing');
         
         await initAgora();
         
@@ -353,16 +359,19 @@
             return;
         }
         
+        // Join the channel
         await client.join(data.app_id, channel, data.token, uid);
         
-        // Create local tracks
-        localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
+        // Create local audio and video tracks
+        [localAudioTrack, localVideoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
         
         // Play local video
-        localTracks[1].play('local-video');
+        localVideoTrack.play('local-video');
         
-        // Publish tracks
-        await client.publish(localTracks);
+        // Publish audio and video tracks
+        await client.publish([localAudioTrack, localVideoTrack]);
+        
+        console.log('Published local tracks');
         
         // Show call interface
         document.getElementById('request-section').style.display = 'none';
@@ -380,7 +389,7 @@
 
     // Queue Polling
     function startQueuePolling() {
-        setInterval(async () => {
+        queuePollingInterval = setInterval(async () => {
             try {
                 const response = await fetch(`/video/queue-status?queue_id=${queueId}`);
                 const data = await response.json();
@@ -395,7 +404,6 @@
         }, 3000);
     }
 
-    let queuePollingInterval = null;
     function stopQueuePolling() {
         if (queuePollingInterval) {
             clearInterval(queuePollingInterval);
@@ -428,12 +436,12 @@
 
     // Toggle Mic
     function toggleMic() {
-        if (localTracks[0]) {
+        if (localAudioTrack) {
             if (isMuted) {
-                localTracks[0].setEnabled(true);
+                localAudioTrack.setEnabled(true);
                 document.getElementById('mic-btn').classList.add('active');
             } else {
-                localTracks[0].setEnabled(false);
+                localAudioTrack.setEnabled(false);
                 document.getElementById('mic-btn').classList.remove('active');
             }
             isMuted = !isMuted;
@@ -442,57 +450,120 @@
 
     // Toggle Camera
     function toggleCamera() {
-        if (localTracks[1]) {
+        if (localVideoTrack) {
             if (isCameraOff) {
-                localTracks[1].setEnabled(true);
+                localVideoTrack.setEnabled(true);
                 document.getElementById('camera-btn').classList.add('active');
             } else {
-                localTracks[1].setEnabled(false);
+                localVideoTrack.setEnabled(false);
                 document.getElementById('camera-btn').classList.remove('active');
             }
             isCameraOff = !isCameraOff;
         }
     }
 
-    // Screen Share
+    // Screen Share - FIXED IMPLEMENTATION
     async function toggleScreenShare() {
+        const screenBtn = document.getElementById('screen-btn');
+        
         if (isScreenSharing) {
-            // Stop screen share
-            if (localTracks[2]) {
-                localTracks[2].close();
-                localTracks.pop();
-                await client.unpublish(localTracks[2]);
-            }
-            
-            // Re-publish camera
-            if (localTracks[1]) {
-                await client.publish(localTracks[1]);
-            }
-            
-            // Play camera
-            localTracks[1].play('local-video');
-            document.getElementById('screen-btn').classList.remove('active');
-            isScreenSharing = false;
-        } else {
+            // === STOP SCREEN SHARING ===
             try {
-                // Create screen track
-                const screenTrack = await AgoraRTC.createScreenVideoTrack();
+                // 1. Unpublish screen track first
+                if (localScreenTrack) {
+                    await client.unpublish(localScreenTrack);
+                    localScreenTrack.close();
+                    localScreenTrack = null;
+                }
                 
-                // Unpublish camera
-                await client.unpublish(localTracks[1]);
+                // 2. Re-publish camera video track
+                if (localVideoTrack) {
+                    await client.publish(localVideoTrack);
+                    localVideoTrack.play('local-video');
+                }
                 
-                // Publish screen
-                await client.publish(screenTrack);
+                screenBtn.classList.remove('active');
+                isScreenSharing = false;
+                console.log('Screen sharing stopped');
+            } catch (error) {
+                console.error('Error stopping screen share:', error);
+            }
+        } else {
+            // === START SCREEN SHARING ===
+            try {
+                // 1. Create screen video track
+                localScreenTrack = await AgoraRTC.createScreenVideoTrack({
+                    encoderConfig: '1080p_1',
+                    optimizationMode: 'detail'
+                }, 'auto');
                 
-                // Play screen
-                screenTrack.play('local-video');
-                localTracks.push(screenTrack);
+                // Handle case where screenTrack might be an array (with audio)
+                let screenVideoTrack = Array.isArray(localScreenTrack) ? localScreenTrack[0] : localScreenTrack;
                 
-                document.getElementById('screen-btn').classList.add('active');
+                // 2. Unpublish camera video track
+                if (localVideoTrack) {
+                    await client.unpublish(localVideoTrack);
+                }
+                
+                // 3. Publish screen track
+                await client.publish(screenVideoTrack);
+                
+                // 4. Play screen locally
+                screenVideoTrack.play('local-video');
+                
+                // 5. Handle "track-ended" event (user clicks browser's "Stop sharing" button)
+                screenVideoTrack.on('track-ended', async () => {
+                    console.log('Screen sharing ended by user from browser UI');
+                    await stopScreenShareInternal();
+                });
+                
+                // Update the reference if it's a single track
+                if (!Array.isArray(localScreenTrack)) {
+                    localScreenTrack = screenVideoTrack;
+                }
+                
+                screenBtn.classList.add('active');
                 isScreenSharing = true;
+                console.log('Screen sharing started');
+                
             } catch (error) {
                 console.error('Screen share error:', error);
+                alert('Screen sharing failed: ' + error.message);
+                isScreenSharing = false;
+                screenBtn.classList.remove('active');
+                
+                // Re-publish camera if screen share failed
+                if (localVideoTrack) {
+                    await client.publish(localVideoTrack);
+                    localVideoTrack.play('local-video');
+                }
             }
+        }
+    }
+
+    // Internal function to stop screen share (called from track-ended event)
+    async function stopScreenShareInternal() {
+        const screenBtn = document.getElementById('screen-btn');
+        
+        try {
+            if (localScreenTrack) {
+                // Handle array case
+                let trackToClose = Array.isArray(localScreenTrack) ? localScreenTrack[0] : localScreenTrack;
+                await client.unpublish(trackToClose);
+                trackToClose.close();
+                localScreenTrack = null;
+            }
+            
+            if (localVideoTrack) {
+                await client.publish(localVideoTrack);
+                localVideoTrack.play('local-video');
+            }
+            
+            screenBtn.classList.remove('active');
+            isScreenSharing = false;
+            console.log('Screen sharing stopped (internal)');
+        } catch (error) {
+            console.error('Error in stopScreenShareInternal:', error);
         }
     }
 
@@ -520,7 +591,6 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Add to UI immediately
                     addChatMessage(message, 'sent', data.message.sender_name);
                     input.value = '';
                 } else {
@@ -566,13 +636,11 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Get current message count
                     const messagesDiv = document.getElementById('chat-messages');
                     const currentMessages = messagesDiv.querySelectorAll('.chat-message');
                     const currentCount = currentMessages.length;
 
                     if (data.messages.length > currentCount) {
-                        // New messages received
                         data.messages.slice(currentCount).forEach(msg => {
                             const type = msg.sender_type === 'customer' ? 'sent' : 'received';
                             addChatMessage(msg.message, type, msg.sender_name);
@@ -582,7 +650,7 @@
             } catch (error) {
                 console.error('Error polling chat:', error);
             }
-        }, 2000); // Poll every 2 seconds
+        }, 2000);
     }
 
     function addChatMessage(message, type, senderName = null) {
@@ -625,17 +693,29 @@
                 },
                 body: JSON.stringify({ session_id: sessionId })
             });
-            
-            // Cleanup
-            localTracks.forEach(track => track.close());
-            if (channel) {
-                await client.leave();
-            }
-            
-            showFeedback();
         } catch (error) {
             console.error('Error ending call:', error);
         }
+        
+        // Cleanup all tracks
+        if (localAudioTrack) {
+            localAudioTrack.close();
+            localAudioTrack = null;
+        }
+        if (localVideoTrack) {
+            localVideoTrack.close();
+            localVideoTrack = null;
+        }
+        if (localScreenTrack) {
+            localScreenTrack.close();
+            localScreenTrack = null;
+        }
+        
+        if (client) {
+            await client.leave();
+        }
+        
+        showFeedback();
     }
 
     // Show Feedback

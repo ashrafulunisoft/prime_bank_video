@@ -277,8 +277,11 @@
 
 @push('scripts')
 <script>
+    // State - Using separate variables for proper track management
     let client = null;
-    let localTracks = [];
+    let localAudioTrack = null;
+    let localVideoTrack = null;
+    let localScreenTrack = null;
     let remoteTracks = {};
     let channel = null;
     let uid = null;
@@ -290,14 +293,12 @@
 
     // Start queue status polling
     function startQueuePolling() {
-        // Poll every 3 seconds for queue status updates
         queuePollingInterval = setInterval(async () => {
             try {
                 const response = await fetch('/video/agent/queue-status');
                 const data = await response.json();
                 
                 if (data.pending_queue !== undefined) {
-                    // Update the queue count display
                     const queueCountElement = document.getElementById('queue-count');
                     if (queueCountElement) {
                         queueCountElement.textContent = data.pending_queue;
@@ -377,10 +378,13 @@
         
         await client.join(data.app_id, channel, data.token, uid);
         
-        localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
-        localTracks[1].play('local-video');
+        // Create local audio and video tracks
+        [localAudioTrack, localVideoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
+        localVideoTrack.play('local-video');
         
-        await client.publish(localTracks);
+        await client.publish([localAudioTrack, localVideoTrack]);
+        
+        console.log('Agent published local tracks');
         
         document.getElementById('next-call-section').style.display = 'none';
         document.getElementById('call-interface').style.display = 'block';
@@ -505,11 +509,17 @@
     async function initAgora(appId) {
         client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
         
+        // Handle remote user publishing (video/audio/screen)
         client.on('user-published', async (user, mediaType) => {
+            console.log('Remote user published:', user.uid, mediaType);
+            
             await client.subscribe(user, mediaType);
+            
             if (mediaType === 'video') {
                 remoteTracks[user.uid] = user.videoTrack;
                 user.videoTrack.play('remote-video');
+                // Update label to indicate screen or video
+                document.getElementById('remote-label').textContent = 'Customer (Video/Screen)';
             }
             if (mediaType === 'audio') {
                 remoteTracks[user.uid] = user.audioTrack;
@@ -517,53 +527,140 @@
             }
         });
 
-        client.on('user-unpublished', (user) => {
+        client.on('user-unpublished', (user, mediaType) => {
+            console.log('Remote user unpublished:', user.uid, mediaType);
+            if (mediaType === 'video') {
+                const remoteContainer = document.getElementById('remote-video');
+                remoteContainer.innerHTML = '';
+            }
             delete remoteTracks[user.uid];
         });
 
         client.on('user-left', async (user) => {
+            console.log('Remote user left:', user.uid);
             delete remoteTracks[user.uid];
             await endCall();
         });
     }
 
     function toggleMic() {
-        if (localTracks[0]) {
+        if (localAudioTrack) {
             isMuted = !isMuted;
-            localTracks[0].setEnabled(!isMuted);
+            localAudioTrack.setEnabled(!isMuted);
             document.getElementById('mic-btn').classList.toggle('active', !isMuted);
         }
     }
 
     function toggleCamera() {
-        if (localTracks[1]) {
+        if (localVideoTrack) {
             isCameraOff = !isCameraOff;
-            localTracks[1].setEnabled(!isCameraOff);
+            localVideoTrack.setEnabled(!isCameraOff);
             document.getElementById('camera-btn').classList.toggle('active', !isCameraOff);
         }
     }
 
+    // Screen Share - FIXED IMPLEMENTATION
     async function toggleScreenShare() {
+        const screenBtn = document.getElementById('screen-btn');
+        
         if (isScreenSharing) {
-            if (localTracks[2]) {
-                localTracks[2].close();
-                localTracks.pop();
-                await client.unpublish(localTracks[2]);
-            }
-            await client.publish(localTracks[1]);
-            localTracks[1].play('local-video');
-            isScreenSharing = false;
-        } else {
+            // === STOP SCREEN SHARING ===
             try {
-                const screenTrack = await AgoraRTC.createScreenVideoTrack();
-                await client.unpublish(localTracks[1]);
-                await client.publish(screenTrack);
-                screenTrack.play('local-video');
-                localTracks.push(screenTrack);
+                // 1. Unpublish screen track first
+                if (localScreenTrack) {
+                    await client.unpublish(localScreenTrack);
+                    localScreenTrack.close();
+                    localScreenTrack = null;
+                }
+                
+                // 2. Re-publish camera video track
+                if (localVideoTrack) {
+                    await client.publish(localVideoTrack);
+                    localVideoTrack.play('local-video');
+                }
+                
+                screenBtn.classList.remove('active');
+                isScreenSharing = false;
+                console.log('Screen sharing stopped');
+            } catch (error) {
+                console.error('Error stopping screen share:', error);
+            }
+        } else {
+            // === START SCREEN SHARING ===
+            try {
+                // 1. Create screen video track
+                localScreenTrack = await AgoraRTC.createScreenVideoTrack({
+                    encoderConfig: '1080p_1',
+                    optimizationMode: 'detail'
+                }, 'auto');
+                
+                // Handle case where screenTrack might be an array (with audio)
+                let screenVideoTrack = Array.isArray(localScreenTrack) ? localScreenTrack[0] : localScreenTrack;
+                
+                // 2. Unpublish camera video track
+                if (localVideoTrack) {
+                    await client.unpublish(localVideoTrack);
+                }
+                
+                // 3. Publish screen track
+                await client.publish(screenVideoTrack);
+                
+                // 4. Play screen locally
+                screenVideoTrack.play('local-video');
+                
+                // 5. Handle "track-ended" event (user clicks browser's "Stop sharing" button)
+                screenVideoTrack.on('track-ended', async () => {
+                    console.log('Screen sharing ended by user from browser UI');
+                    await stopScreenShareInternal();
+                });
+                
+                // Update the reference if it's a single track
+                if (!Array.isArray(localScreenTrack)) {
+                    localScreenTrack = screenVideoTrack;
+                }
+                
+                screenBtn.classList.add('active');
                 isScreenSharing = true;
+                console.log('Screen sharing started');
+                
             } catch (error) {
                 console.error('Screen share error:', error);
+                alert('Screen sharing failed: ' + error.message);
+                isScreenSharing = false;
+                screenBtn.classList.remove('active');
+                
+                // Re-publish camera if screen share failed
+                if (localVideoTrack) {
+                    await client.publish(localVideoTrack);
+                    localVideoTrack.play('local-video');
+                }
             }
+        }
+    }
+
+    // Internal function to stop screen share (called from track-ended event)
+    async function stopScreenShareInternal() {
+        const screenBtn = document.getElementById('screen-btn');
+        
+        try {
+            if (localScreenTrack) {
+                // Handle array case
+                let trackToClose = Array.isArray(localScreenTrack) ? localScreenTrack[0] : localScreenTrack;
+                await client.unpublish(trackToClose);
+                trackToClose.close();
+                localScreenTrack = null;
+            }
+            
+            if (localVideoTrack) {
+                await client.publish(localVideoTrack);
+                localVideoTrack.play('local-video');
+            }
+            
+            screenBtn.classList.remove('active');
+            isScreenSharing = false;
+            console.log('Screen sharing stopped (internal)');
+        } catch (error) {
+            console.error('Error in stopScreenShareInternal:', error);
         }
     }
 
@@ -585,8 +682,23 @@
             console.error('Error ending call:', error);
         }
         
-        localTracks.forEach(track => track.close());
-        if (client) await client.leave();
+        // Cleanup all tracks
+        if (localAudioTrack) {
+            localAudioTrack.close();
+            localAudioTrack = null;
+        }
+        if (localVideoTrack) {
+            localVideoTrack.close();
+            localVideoTrack = null;
+        }
+        if (localScreenTrack) {
+            localScreenTrack.close();
+            localScreenTrack = null;
+        }
+        
+        if (client) {
+            await client.leave();
+        }
         
         location.reload();
     }
