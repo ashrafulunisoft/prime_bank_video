@@ -656,6 +656,18 @@ class VideoCallController extends Controller
     }
 
     /**
+     * Get real-time queue status for agent dashboard.
+     */
+    public function agentQueueStatus()
+    {
+        $pendingQueue = CallQueue::where('status', 'waiting')->count();
+        
+        return response()->json([
+            'pending_queue' => $pendingQueue,
+        ]);
+    }
+
+    /**
      * Connect queue entry to agent.
      */
     protected function connectQueueToAgent(CallQueue $queue, Agent $agent)

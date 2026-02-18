@@ -183,7 +183,7 @@
             <div class="stat-label">Total Duration</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">{{ $pendingQueue }}</div>
+            <div class="stat-value" id="queue-count">{{ $pendingQueue }}</div>
             <div class="stat-label">Waiting in Queue</div>
         </div>
         <div class="stat-card">
@@ -273,3 +273,223 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    let client = null;
+    let localTracks = [];
+    let remoteTracks = {};
+    let channel = null;
+    let uid = null;
+    let isMuted = false;
+    let isCameraOff = false;
+    let isScreenSharing = false;
+    let sessionId = null;
+    let queuePollingInterval = null;
+
+    // Start queue status polling
+    function startQueuePolling() {
+        // Poll every 3 seconds for queue status updates
+        queuePollingInterval = setInterval(async () => {
+            try {
+                const response = await fetch('/video/agent/queue-status');
+                const data = await response.json();
+                
+                if (data.pending_queue !== undefined) {
+                    // Update the queue count display
+                    const queueCountElement = document.getElementById('queue-count');
+                    if (queueCountElement) {
+                        queueCountElement.textContent = data.pending_queue;
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling queue status:', error);
+            }
+        }, 3000);
+    }
+
+    // Start polling when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        startQueuePolling();
+    });
+
+    // Set Status
+    async function setStatus(status) {
+        try {
+            const response = await fetch('/video/agent/status', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status })
+            });
+            
+            const data = await response.json();
+            
+            document.getElementById('status-indicator').className = `status-indicator status-${status}`;
+            document.getElementById('status-text').textContent = status;
+            
+            if (data.call_started) {
+                startCallWithData(data);
+            }
+        } catch (error) {
+            console.error('Error setting status:', error);
+        }
+    }
+
+    // Start Call
+    async function startCall() {
+        try {
+            const response = await fetch('/video/agent/start-call', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.channel) {
+                startCallWithData(data);
+            } else {
+                alert(data.error || 'No customers in queue');
+            }
+        } catch (error) {
+            console.error('Error starting call:', error);
+        }
+    }
+
+    async function startCallWithData(data) {
+        console.log('Agent joining channel with data:', data);
+        
+        if (!data.app_id) {
+            alert('Error: App ID is missing from server response');
+            return;
+        }
+        
+        await initAgora(data.app_id);
+        
+        channel = data.channel;
+        uid = data.uid;
+        sessionId = data.session_id;
+        
+        await client.join(data.app_id, channel, data.token, uid);
+        
+        localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
+        localTracks[1].play('local-video');
+        
+        await client.publish(localTracks);
+        
+        document.getElementById('next-call-section').style.display = 'none';
+        document.getElementById('call-interface').style.display = 'block';
+        document.getElementById('remote-label').textContent = data.customer_name || 'Customer';
+    }
+
+    async function initAgora(appId) {
+        client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+        
+        client.on('user-published', async (user, mediaType) => {
+            await client.subscribe(user, mediaType);
+            if (mediaType === 'video') {
+                remoteTracks[user.uid] = user.videoTrack;
+                user.videoTrack.play('remote-video');
+            }
+            if (mediaType === 'audio') {
+                remoteTracks[user.uid] = user.audioTrack;
+                user.audioTrack.play();
+            }
+        });
+
+        client.on('user-unpublished', (user) => {
+            delete remoteTracks[user.uid];
+        });
+
+        client.on('user-left', async (user) => {
+            delete remoteTracks[user.uid];
+            await endCall();
+        });
+    }
+
+    function toggleMic() {
+        if (localTracks[0]) {
+            isMuted = !isMuted;
+            localTracks[0].setEnabled(!isMuted);
+            document.getElementById('mic-btn').classList.toggle('active', !isMuted);
+        }
+    }
+
+    function toggleCamera() {
+        if (localTracks[1]) {
+            isCameraOff = !isCameraOff;
+            localTracks[1].setEnabled(!isCameraOff);
+            document.getElementById('camera-btn').classList.toggle('active', !isCameraOff);
+        }
+    }
+
+    async function toggleScreenShare() {
+        if (isScreenSharing) {
+            if (localTracks[2]) {
+                localTracks[2].close();
+                localTracks.pop();
+                await client.unpublish(localTracks[2]);
+            }
+            await client.publish(localTracks[1]);
+            localTracks[1].play('local-video');
+            isScreenSharing = false;
+        } else {
+            try {
+                const screenTrack = await AgoraRTC.createScreenVideoTrack();
+                await client.unpublish(localTracks[1]);
+                await client.publish(screenTrack);
+                screenTrack.play('local-video');
+                localTracks.push(screenTrack);
+                isScreenSharing = true;
+            } catch (error) {
+                console.error('Screen share error:', error);
+            }
+        }
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+        if (message) {
+            addChatMessage(message, 'sent');
+            console.log('Sending:', message);
+            input.value = '';
+        }
+    }
+
+    function addChatMessage(message, type) {
+        const div = document.createElement('div');
+        div.className = `chat-message ${type}`;
+        div.textContent = message;
+        document.getElementById('chat-messages').appendChild(div);
+    }
+
+    function handleChatKeypress(event) {
+        if (event.key === 'Enter') sendMessage();
+    }
+
+    async function endCall() {
+        try {
+            await fetch('/video/end-call', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ session_id: sessionId })
+            });
+        } catch (error) {
+            console.error('Error ending call:', error);
+        }
+        
+        localTracks.forEach(track => track.close());
+        if (client) await client.leave();
+        
+        location.reload();
+    }
+</script>
+@endpush
