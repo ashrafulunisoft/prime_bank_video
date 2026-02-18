@@ -211,7 +211,7 @@
     <!-- Request Button -->
     <div id="request-section" class="text-center py-5">
         <h2><i class="fas fa-video"></i> Video Call Support</h2>
-        <p class="text-muted">Connect with a customer care representative via video call</p>
+        <p class="text-white">Connect with a customer care representative via video call</p>
         <button class="btn btn-primary btn-lg px-5" onclick="requestCall()">
             <i class="fas fa-phone-alt"></i> Start Video Call
         </button>

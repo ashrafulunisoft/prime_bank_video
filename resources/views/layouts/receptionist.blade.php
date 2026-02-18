@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'UCB Bank - Receptionist Dashboard')</title>
+    <title>@yield('title', 'Prime Bank - Receptionist Dashboard')</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts: Inter -->
@@ -20,17 +20,34 @@
 
     <style>
         :root {
-            --bg-page: linear-gradient(135deg, #4ab59a 0%, #0d5540 100%);
-            --sidebar-bg: #4ab697;
-            --accent-emerald: #10b981;
-            --accent-teal: #14b8a6;
-            --accent-green: #22c55e;
-            --glass-card: rgba(52, 135, 116, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.15);
-            --neon-emerald: 0 0 20px rgba(117, 242, 200, 0.4), 0 0 40px rgba(16, 185, 129, 0.2);
-            --neon-teal: 0 8px 25px rgba(20, 184, 166, 0.4);
+            --bg-page: radial-gradient(circle at center, #101d42 0%, #060b1d 100%);
+            --sidebar-bg: #111a30;
+            --accent-indigo: #4f46e5;
+            --accent-blue: #3b82f6;
+            --accent-pink: #db2777;
+            --glass-card: rgba(15, 23, 42, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --neon-blue: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.2);
+            --neon-indigo: 0 8px 25px rgba(79, 70, 229, 0.4);
             --sidebar-width: 280px;
-            --text-muted: #000000;
+            --text-muted: #94a3b8;
+        }
+
+        /* --- CUSTOM NEON SCROLLER FOR MOBILE --- */
+        .bar-chart-wrapper::-webkit-scrollbar,
+        .table-responsive::-webkit-scrollbar {
+            height: 6px;
+        }
+        .bar-chart-wrapper::-webkit-scrollbar-track,
+        .table-responsive::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .bar-chart-wrapper::-webkit-scrollbar-thumb,
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: var(--accent-blue);
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--accent-blue);
         }
 
         body {
@@ -38,7 +55,7 @@
             background: var(--bg-page);
             background-attachment: fixed;
             min-height: 100vh;
-            color: #fff6f6;
+            color: #fff;
             margin: 0;
             overflow-x: hidden;
         }
@@ -92,8 +109,8 @@
         }
 
         .sidebar-item.active {
-            background: var(--accent-emerald);
-            box-shadow: var(--neon-emerald);
+            background: var(--accent-indigo);
+            box-shadow: var(--neon-indigo);
         }
 
         .sidebar-submenu {
@@ -118,7 +135,7 @@
 
         /* Help Center */
         .help-center-box {
-            background: linear-gradient(180deg, var(--accent-emerald) 0%, var(--accent-teal) 100%);
+            background: linear-gradient(180deg, var(--accent-indigo) 0%, var(--accent-blue) 100%);
             border-radius: 24px;
             padding: 1.5rem;
             margin-top: auto;
@@ -134,7 +151,7 @@
             display: flex;
             align-items: center; justify-content: center;
             margin: -40px auto 1rem;
-            border: 4px solid #0a4232;
+            border: 4px solid #111a30;
             font-size: 1.2rem; font-weight: 800;
         }
 
@@ -169,10 +186,10 @@
         .summary-card h2 { font-size: 2rem; font-weight: 800; margin: 0; letter-spacing: -1px; }
         .summary-icon {
             width: 42px; height: 42px;
-            background: rgba(16, 185, 129, 0.15);
+            background: rgba(59, 130, 246, 0.1);
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            color: var(--accent-emerald);
+            color: var(--accent-blue);
         }
 
         /* Charts */
@@ -185,9 +202,9 @@
         }
         .bar-col {
             flex: 1;
-            background: linear-gradient(180deg, var(--accent-emerald), var(--accent-teal));
+            background: linear-gradient(180deg, var(--accent-indigo), var(--accent-blue));
             border-radius: 8px 8px 0 0;
-            box-shadow: var(--neon-emerald);
+            box-shadow: var(--neon-blue);
         }
 
         /* Recent Visits Log Container & Font Fix */
@@ -201,7 +218,7 @@
             border-radius: 15px;
             overflow-x: auto;
         }
-        .table { color: #fff !important; --bs-table-bg: transparent; border-color: rgba(255,255,255,0.05); min-width: 800px; }
+        .table { color: #fff !important; --bs-table-bg: transparent; border-color: rgba(255, 255, 255, 0.05); min-width: 800px; }
         .table th {
             text-transform: uppercase; font-size: 10px; letter-spacing: 1.5px;
             color: #fff !important; font-weight: 800; white-space: nowrap;
@@ -231,6 +248,20 @@
             z-index: 1000;
             border-bottom: 1px solid var(--glass-border);
             width: 100%;
+            flex-wrap: nowrap;
+        }
+
+        .mobile-top-nav .text-center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-top-nav .text-center img {
+            max-width: 300px !important;
+            width: 300px !important;
+            height: auto !important;
         }
 
         .sidebar-overlay {
@@ -265,6 +296,7 @@
             background: #fff; color: #1e293b;
             width: 40px; height: 40px;
             border-radius: 10px; font-weight: 900;
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
             display: flex; align-items: center; justify-content: center;
         }
 
@@ -282,7 +314,7 @@
             width: 160px;
             height: 160px;
             border-radius: 50%;
-            background: conic-gradient(var(--accent-emerald) 0% 40%, var(--accent-teal) 40% 60%, var(--accent-green) 60% 80%, #ef4444 80% 100%);
+            background: conic-gradient(var(--accent-blue) 0% 40%, #10b981 40% 60%, #f59e0b 60% 80%, #ef4444 80% 100%);
             position: relative;
             display: flex;
             align-items: center;
@@ -327,8 +359,8 @@
         }
 
         .input-custom:focus {
-            border-color: var(--accent-emerald) !important;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.6), 0 0 40px rgba(16, 185, 129, 0.3) !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3) !important;
             background: rgba(0, 0, 0, 0.45) !important;
             transform: translateY(-2px);
         }
@@ -343,10 +375,10 @@
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(35px);
             -webkit-backdrop-filter: blur(35px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.2);
             border-radius: 40px;
             padding: 3.5rem;
-            box-shadow: 0 30px 100px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(16, 185, 129, 0.05);
+            box-shadow: 0 30px 100px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(59, 130, 246, 0.05);
             position: relative;
         }
 
@@ -398,8 +430,33 @@
             accent-color: #3b82f6;
         }
 
+        .btn-create:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5);
+            filter: brightness(1.1);
+        }
+
+        .btn-reset:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: #ef4444;
+            color: white;
+            box-shadow: 0 15px 40px rgba(239, 68, 68, 0.5);
+            transform: translateY(-3px);
+        }
+
         .btn-gradient {
-            background: linear-gradient(135deg, var(--accent-emerald), var(--accent-teal));
+            background: linear-gradient(135deg, #5046e5, #3b82f6);
             border: none;
             border-radius: 100px;
             padding: 16px;
@@ -409,12 +466,12 @@
             letter-spacing: 2px;
             font-size: 0.85rem;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.6), 0 0 40px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3);
         }
 
         .btn-gradient:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.5);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5);
             filter: brightness(1.1);
         }
 
@@ -445,11 +502,12 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 2px;
-            color: var(--accent-emerald);
+            color: #3b82f6;
             margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
             gap: 15px;
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
 
         .input-icon {
@@ -457,7 +515,7 @@
             right: 18px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--accent-emerald);
+            color: var(--accent-blue);
             opacity: 0.6;
             font-size: 0.9rem;
             pointer-events: none;
@@ -467,6 +525,8 @@
         .letter-spacing-1 { letter-spacing: -1px; }
         .border-dashed { border-style: dashed; }
         .border-orange { border-color: orange; }
+        .text-shadow-white { text-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+        .text-shadow-blue { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
         .cursor-pointer { cursor: pointer; }
 
         /* Notification Panel Styles */
@@ -520,7 +580,7 @@
         .notification-avatar {
             width: 45px;
             height: 45px;
-            background: linear-gradient(135deg, var(--accent-emerald), var(--accent-teal));
+            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-blue));
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -612,17 +672,17 @@
         }
 
         .page-link:hover {
-            background: rgba(16, 185, 129, 0.2);
-            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.3);
             color: #fff !important;
             transform: translateY(-2px);
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
         }
 
         .page-item.active .page-link {
-            background: linear-gradient(135deg, var(--accent-emerald), var(--accent-teal));
+            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-blue));
             border-color: transparent;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
             color: #fff !important;
         }
 
@@ -652,8 +712,8 @@
     <!-- Mobile Navigation Bar -->
     <div class="mobile-top-nav">
 
-        <div class="text-center gap-3 mb-3 ">
-                <img class="bg-white " src="{{ asset('vms/logo/pragatiLogo.png') }}" style="height: 80px; width: 150px; border-radius:10px;" alt="UCB Bank Logo">
+        <div class="text-center">
+                <img class="bg-white w-full" src="{{ asset('vms/logo/primebank_logo.png') }}" style="border-radius:10px;" alt="Prime Bank Logo">
         </div>
         <button class="btn text-white p-0" onclick="toggleSidebar()">
             <i class="fas fa-bars fs-4"></i>
@@ -667,7 +727,7 @@
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="text-center gap-3 mb-3 ">
-                <img class="bg-white " src="{{ asset('vms/logo/pragatiLogo.png') }}" style="height: 80px; width: 150px; border-radius:10px;" alt="UCB Bank Logo">
+                <img class="bg-white " src="{{ asset('vms/logo/primebank_logo.png') }}" style="height: 55px; width: 230px; border-radius:10px;" alt="Prime Bank Logo">
             </div>
 
             <nav>
@@ -788,7 +848,7 @@
                     <i class="fas fa-user"></i> My Profile
                 </a>
 
-                <!-- Insurance - Packages -->
+                {{-- <!-- Insurance - Packages -->
                 <a href="{{ route('packages.index') }}" class="sidebar-item {{ request()->routeIs('packages.*') ? 'active' : '' }}">
                     <i class="fas fa-box"></i> Packages
                 </a>
@@ -806,7 +866,7 @@
                 <!-- AI Agent - Always visible -->
                 <a href="{{ route('chatbot.index') }}" class="sidebar-item {{ request()->routeIs('chat*') ? 'active' : '' }}">
                     <i class="fas fa-comment-dots"></i> AI Agent
-                </a>
+                </a> --}}
 
                 <!-- Video Call - Always visible -->
                 <a href="{{ route('video.agent.dashboard') }}" class="sidebar-item {{ request()->routeIs('video.*') ? 'active' : '' }}">
