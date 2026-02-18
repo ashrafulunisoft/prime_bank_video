@@ -7,7 +7,7 @@ use App\Models\CallQueue;
 use App\Models\CallSession;
 use App\Models\CallFeedback;
 use App\Models\CallMetric;
-use App\Models\VisitorOtp;
+use App\Models\VideoCallOtp;
 use App\Services\AgoraService;
 use App\Services\SmsNotificationService;
 use Illuminate\Http\Request;
@@ -95,35 +95,35 @@ class VideoCallController extends Controller
         $otpInput = $request->input('otp');
         
         // Find the most recent active OTP for this user
-        $visitorOtp = VisitorOtp::where('visitor_id', $user->id)
+        $videoCallOtp = VideoCallOtp::where('user_id', $user->id)
             ->where('is_active', true)
             ->latest()
             ->first();
 
-        if (!$visitorOtp) {
+        if (!$videoCallOtp) {
             return back()->with('error', 'No active OTP found. Please request a new OTP.')->withInput();
         }
 
         // Check if OTP is expired
-        if ($visitorOtp->isExpired()) {
+        if ($videoCallOtp->isExpired()) {
             return back()->with('error', 'OTP has expired. Please request a new OTP.')->withInput();
         }
 
         // Check if OTP is already verified
-        if ($visitorOtp->isVerified()) {
+        if ($videoCallOtp->isVerified()) {
             return back()->with('error', 'This OTP has already been used. Please request a new OTP.')->withInput();
         }
 
         // Verify the OTP hash
-        if (!hash_equals($visitorOtp->otp_hash, hash('sha256', $otpInput))) {
+        if (!hash_equals($videoCallOtp->otp_hash, hash('sha256', $otpInput))) {
             // Increment attempts
-            $visitorOtp->increment('attempts');
+            $videoCallOtp->increment('attempts');
             
             return back()->with('error', 'Invalid OTP. Please try again.')->withInput();
         }
 
         // Mark OTP as verified
-        $visitorOtp->update([
+        $videoCallOtp->update([
             'verified_at' => now(),
             'is_active' => false
         ]);
@@ -146,17 +146,55 @@ class VideoCallController extends Controller
     protected function sendOtpInternal($user)
     {
         try {
+            Log::info('OTP Sending - Starting Process', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'user_name' => $user->name,
+                'user_phone' => $user->phone,
+                'user_phone_type' => gettype($user->phone),
+                'user_phone_is_null' => is_null($user->phone),
+                'user_phone_is_empty' => empty($user->phone),
+            ]);
+
+            // Check if user has a phone number
+            if (!$user->phone) {
+                Log::warning('OTP Sending - No phone number', [
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                ]);
+                return ['success' => false, 'message' => 'Phone number not found. Please update your profile.'];
+            }
+
+            // Normalize phone number to match the working /test-sms format
+            // The /test-sms route uses: '8801859385787' (with country code, no + prefix)
+            $normalizedPhone = $this->normalizePhoneNumber($user->phone);
+            
+            Log::info('OTP Sending - Phone Normalization', [
+                'user_id' => $user->id,
+                'original_phone' => $user->phone,
+                'original_phone_length' => strlen($user->phone),
+                'normalized_phone' => $normalizedPhone,
+                'normalized_phone_length' => strlen($normalizedPhone),
+                'matches_test_format' => $normalizedPhone === '8801859385787',
+            ]);
+
             // Generate 6-digit OTP
             $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
             
+            Log::info('OTP Sending - OTP Generated', [
+                'user_id' => $user->id,
+                'otp' => $otp,
+                'otp_length' => strlen($otp),
+            ]);
+            
             // Deactivate any existing active OTPs for this user
-            VisitorOtp::where('visitor_id', $user->id)
+            VideoCallOtp::where('user_id', $user->id)
                 ->where('is_active', true)
                 ->update(['is_active' => false]);
             
             // Create new OTP record
-            VisitorOtp::create([
-                'visitor_id' => $user->id,
+            VideoCallOtp::create([
+                'user_id' => $user->id,
                 'otp_hash' => hash('sha256', $otp),
                 'channel' => 'sms',
                 'expires_at' => now()->addMinutes(10),
@@ -167,12 +205,44 @@ class VideoCallController extends Controller
             
             // Send OTP via SMS
             $message = "Your Prime Bank Video Call OTP is: {$otp}. Valid for 10 minutes. Do not share this with anyone.";
-            $smsResult = $this->smsService->send($user->phone, $message);
+            
+            // DIAGNOSTIC: Log before sending SMS
+            Log::info('OTP Sending - Before SMS Service', [
+                'user_id' => $user->id,
+                'original_phone' => $user->phone,
+                'normalized_phone' => $normalizedPhone,
+                'message' => $message,
+                'message_length' => strlen($message),
+                'sms_service_class' => get_class($this->smsService),
+            ]);
+            
+            Log::info('OTP Sending - Calling SMS Service', [
+                'user_id' => $user->id,
+                'phone_to_send' => $normalizedPhone,
+                'message_preview' => substr($message, 0, 50) . '...',
+            ]);
+            
+            $smsResult = $this->smsService->send($normalizedPhone, $message);
+            
+            Log::info('OTP Sending - SMS Service Returned', [
+                'user_id' => $user->id,
+                'sms_result_success' => $smsResult['success'] ?? false,
+                'sms_result_message' => $smsResult['message'] ?? 'No message',
+                'sms_result_keys' => array_keys($smsResult),
+            ]);
+            
+            // DIAGNOSTIC: Log SMS result
+            Log::info('OTP Sending - SMS Service Result', [
+                'user_id' => $user->id,
+                'phone' => $normalizedPhone,
+                'sms_success' => $smsResult['success'] ?? false,
+                'sms_message' => $smsResult['message'] ?? 'No message',
+            ]);
             
             if ($smsResult['success']) {
                 Log::info('Video call OTP sent', [
                     'user_id' => $user->id,
-                    'phone' => $user->phone,
+                    'phone' => $normalizedPhone,
                     'expires_at' => now()->addMinutes(10)
                 ]);
                 
@@ -194,6 +264,39 @@ class VideoCallController extends Controller
             
             return ['success' => false, 'message' => 'An error occurred. Please try again.'];
         }
+    }
+
+    /**
+     * Normalize phone number to match SMS provider format
+     * Converts phone numbers to format: 880XXXXXXXXXX (with country code, no + prefix)
+     */
+    protected function normalizePhoneNumber($phone)
+    {
+        if (!$phone) {
+            return null;
+        }
+
+        // Remove all non-numeric characters
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+
+        // If phone starts with 00, replace with 880
+        if (strpos($phone, '00') === 0) {
+            $phone = '880' . substr($phone, 2);
+        }
+        // If phone starts with +, remove the +
+        elseif (strpos($phone, '+') === 0) {
+            $phone = substr($phone, 1);
+        }
+        // If phone starts with 0 (local format), add 880
+        elseif (strpos($phone, '0') === 0 && strlen($phone) === 11) {
+            $phone = '880' . substr($phone, 1);
+        }
+        // If phone doesn't start with 880 and is 10 digits (local format), add 880
+        elseif (strlen($phone) === 10 && strpos($phone, '880') !== 0) {
+            $phone = '880' . $phone;
+        }
+
+        return $phone;
     }
 
     /**
