@@ -133,18 +133,139 @@
     </div>
 
     @if(auth()->user()->hasRole('visitor'))
-    <!-- Video Call Section - Only for Visitors/Customers -->
+    <!-- Stats Overview Row 1 - Video Call Analytics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="glass-card stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+                <h3 class="fw-800 mb-1" style="font-size: 2rem; color: #fff;">{{ $stats['total_calls_today'] ?? 0 }}</h3>
+                <p style="color: #94a3b8; margin-bottom: 0;">Total Calls Today</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-video"></i>
+                </div>
+                <h3 class="fw-800 mb-1" style="font-size: 2rem; color: #fff;">{{ $stats['active_calls'] ?? 0 }}</h3>
+                <p style="color: #94a3b8; margin-bottom: 0;">Active Calls</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card stat-card">
+                <div class="stat-icon warning">
+                    <i class="fas fa-list-ol"></i>
+                </div>
+                <h3 class="fw-800 mb-1" style="font-size: 2rem; color: #fff;">{{ $stats['calls_in_queue'] ?? 0 }}</h3>
+                <p style="color: #94a3b8; margin-bottom: 0;">Calls in Queue</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card stat-card">
+                <div class="stat-icon info">
+                    <i class="fas fa-user-headset"></i>
+                </div>
+                <h3 class="fw-800 mb-1" style="font-size: 2rem; color: #fff;">{{ $stats['free_agents'] ?? 0 }}/{{ $stats['total_agents'] ?? 0 }}</h3>
+                <p style="color: #94a3b8; margin-bottom: 0;">Free Agents</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics Row 2 - Video Call Metrics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="glass-card stat-card">
+                <div class="stat-icon purple">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h4 class="fw-800 mb-1" style="color: #fff;">{{ $stats['total_call_duration_formatted'] ?? '00:00:00' }}</h4>
+                <p style="color: #94a3b8; margin-bottom: 0.5rem;">Total Duration</p>
+                <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    <span class="small" style="color: #94a3b8;">Avg Duration</span>
+                    <span class="fw-600" style="color: #fff;">{{ $stats['avg_call_duration'] ?? '0m' }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-card stat-card">
+                <div class="stat-icon warning">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <h4 class="fw-800 mb-1" style="color: #fff;">{{ $stats['avg_waiting_time'] ?? '0s' }}</h4>
+                <p style="color: #94a3b8; margin-bottom: 0.5rem;">Average Wait Time</p>
+                <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    <span class="small" style="color: #94a3b8;">Total Wait</span>
+                    <span class="fw-600" style="color: #fff;">{{ $stats['total_waiting_time'] ?? '0h 0m' }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-card stat-card">
+                <div class="stat-icon pink">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h4 class="fw-800 mb-1" style="color: #fff;">{{ $stats['avg_customer_rating'] ?? '0.0' }} <small style="color: #94a3b8;">/ 5</small></h4>
+                <p style="color: #94a3b8; margin-bottom: 0.5rem;">Average Rating</p>
+                <div class="d-flex justify-content-center pt-2" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    @php
+                        $rating = round($stats['avg_customer_rating'] ?? 0);
+                    @endphp
+                    @for($i = 1; $i <= 5; $i++)
+                        <i class="fas fa-star {{ $i <= $rating ? 'text-warning' : 'text-secondary' }} me-1"></i>
+                    @endfor
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Calls in Queue -->
     <div class="row g-4 mb-4">
         <div class="col-12">
-            <div class="glass-card p-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h6 class="fw-800 sub-label mb-1">🎥 Video Call Support</h6>
-                        <p class="text-white small mb-0">Connect with a customer care representative via video call</p>
+            <div class="glass-card">
+                <div class="p-4" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h5 class="section-title mb-0"><i class="fas fa-list-ol me-2" style="color: #8b5cf6;"></i>My Queue Position</h5>
+                </div>
+                <div class="p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Position</th>
+                                    <th>Waiting Since</th>
+                                    <th>Estimated Wait</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $myQueuePosition = \App\Models\CallQueue::where('user_id', auth()->id())->where('status', 'waiting')->first();
+                                @endphp
+                                @if($myQueuePosition)
+                                    <tr>
+                                        <td>
+                                            <span class="fw-700" style="font-size: 1rem; color: #8b5cf6;">#{{ $myQueuePosition->position ?? 0 }}</span>
+                                        </td>
+                                        <td>{{ $myQueuePosition->joined_at ? $myQueuePosition->joined_at->diffForHumans() : '--' }}</td>
+                                        <td>
+                                            <span class="fw-600" style="color: #f59e0b;">{{ $myQueuePosition->estimated_wait_time ?? '5-10 min' }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge-glass badge-warning">WAITING</span>
+                                        </td>
+                                    </tr>
+                                @else
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4">
+                                            <i class="fas fa-check-circle mb-2" style="font-size: 1.5rem; color: #22c55e;"></i>
+                                            <p class="mb-0" style="color: #94a3b8;">You are not in the queue</p>
+                                        </td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
                     </div>
-                    <a href="{{ route('video.call') }}" class="btn btn-primary">
-                        <i class="fas fa-video me-2"></i>Start Video Call
-                    </a>
                 </div>
             </div>
         </div>
@@ -311,6 +432,57 @@
         </div>
     </div>
     @endif
+
+    <!-- My Calls in Queue -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="p-4" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h5 class="section-title mb-0"><i class="fas fa-list-ol me-2" style="color: #8b5cf6;"></i>My Queue Position</h5>
+                </div>
+                <div class="p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Position</th>
+                                    <th>Waiting Since</th>
+                                    <th>Estimated Wait</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $myQueuePosition = \App\Models\CallQueue::where('user_id', auth()->id())->where('status', 'waiting')->first();
+                                @endphp
+                                @if($myQueuePosition)
+                                    <tr>
+                                        <td>
+                                            <span class="fw-700" style="font-size: 1rem; color: #8b5cf6;">#{{ $myQueuePosition->position ?? 0 }}</span>
+                                        </td>
+                                        <td>{{ $myQueuePosition->joined_at ? $myQueuePosition->joined_at->diffForHumans() : '--' }}</td>
+                                        <td>
+                                            <span class="fw-600" style="color: #f59e0b;">{{ $myQueuePosition->estimated_wait_time ?? '5-10 min' }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge-glass badge-warning">WAITING</span>
+                                        </td>
+                                    </tr>
+                                @else
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4">
+                                            <i class="fas fa-check-circle mb-2" style="font-size: 1.5rem; color: #22c55e;"></i>
+                                            <p class="mb-0" style="color: #94a3b8;">You are not in the queue</p>
+                                        </td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- My Claims Section -->
     @if(isset($userClaims) && $userClaims->count() > 0)
