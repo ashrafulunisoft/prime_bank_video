@@ -176,19 +176,19 @@
     <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-value">{{ $todayCalls }}</div>
+            <div class="stat-value" id="today-calls">{{ $todayCalls }}</div>
             <div class="stat-label">Calls Today</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">{{ gmdate('H:i:s', $todayDuration) }}</div>
+            <div class="stat-value" id="today-duration">{{ gmdate('H:i:s', $todayDuration) }}</div>
             <div class="stat-label">Total Duration</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">{{ $pendingQueue }}</div>
+            <div class="stat-value" id="pending-queue">{{ $pendingQueue }}</div>
             <div class="stat-label">Waiting in Queue</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">{{ number_format($agent->average_rating, 1) }}</div>
+            <div class="stat-value" id="avg-rating">{{ number_format($agent->average_rating, 1) }}</div>
             <div class="stat-label">Avg Rating</div>
         </div>
     </div>
@@ -213,8 +213,7 @@
     </div>
 
     <!-- Take Next Call -->
-    @if($agent->isAvailable())
-    <div class="status-card mb-4" id="next-call-section">
+    <div class="status-card mb-4" id="next-call-section" style="display: {{ $agent->isAvailable() ? 'block' : 'none' }}">
         <div class="text-center">
             <h4><i class="fas fa-phone-alt"></i> Next Customer Waiting</h4>
             <p class="text-muted">Take the next customer from the queue</p>
@@ -223,7 +222,6 @@
             </button>
         </div>
     </div>
-    @endif
 
     <!-- Call Interface -->
     <div id="call-interface" style="display: none;">
@@ -277,6 +275,64 @@
 
 @push('scripts')
 <script>
+    // Real-time queue polling - update every 3 seconds
+    let pollInterval = null;
+    
+    function startPolling() {
+        // Update immediately
+        fetchAgentStats();
+        
+        // Then poll every 3 seconds
+        pollInterval = setInterval(fetchAgentStats, 3000);
+    }
+    
+    function stopPolling() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+    }
+    
+    async function fetchAgentStats() {
+        try {
+            const response = await fetch('/video/agent/stats');
+            const data = await response.json();
+            
+            if (data.error) {
+                console.error('Error fetching stats:', data.error);
+                return;
+            }
+            
+            // Update stats on the page
+            document.getElementById('today-calls').textContent = data.today_calls;
+            document.getElementById('today-duration').textContent = data.today_duration;
+            document.getElementById('pending-queue').textContent = data.pending_queue;
+            document.getElementById('avg-rating').textContent = data.average_rating;
+            
+            // Update status indicator
+            document.getElementById('status-indicator').className = `status-indicator status-${data.agent_status}`;
+            document.getElementById('status-text').textContent = data.agent_status;
+            
+            // Show/hide next call section based on availability and queue
+            const nextCallSection = document.getElementById('next-call-section');
+            if (nextCallSection) {
+                nextCallSection.style.display = (data.is_available && data.pending_queue > 0) ? 'block' : 'none';
+            }
+        } catch (error) {
+            console.error('Error polling agent stats:', error);
+        }
+    }
+    
+    // Start polling when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        startPolling();
+    });
+    
+    // Stop polling when leaving page
+    window.addEventListener('beforeunload', function() {
+        stopPolling();
+    });
+
     let client = null;
     let localTracks = [];
     let remoteTracks = {};

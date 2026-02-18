@@ -405,6 +405,40 @@ class VideoCallController extends Controller
     }
 
     /**
+     * Get real-time agent statistics - for AJAX polling.
+     */
+    public function agentStats(Request $request)
+    {
+        $agent = Agent::where('user_id', Auth::id())->first();
+        
+        if (!$agent) {
+            return response()->json(['error' => 'Agent not found.'], 404);
+        }
+
+        $todayCalls = $agent->callSessions()
+            ->whereDate('started_at', today())
+            ->count();
+
+        $todayDuration = $agent->callSessions()
+            ->whereDate('started_at', today())
+            ->sum('duration');
+
+        $pendingQueue = CallQueue::where('status', 'waiting')->count();
+
+        $isAvailable = $agent->isAvailable();
+
+        return response()->json([
+            'today_calls' => $todayCalls,
+            'today_duration' => gmdate('H:i:s', $todayDuration),
+            'pending_queue' => $pendingQueue,
+            'average_rating' => number_format($agent->average_rating, 1),
+            'agent_status' => $agent->status,
+            'is_available' => $isAvailable,
+            'has_next_call' => $isAvailable && $pendingQueue > 0,
+        ]);
+    }
+
+    /**
      * End a call.
      */
     public function endCall(Request $request)
