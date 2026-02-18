@@ -7,12 +7,14 @@ use App\Models\CallQueue;
 use App\Models\CallSession;
 use App\Models\CallFeedback;
 use App\Models\CallMetric;
+use App\Models\VideoCallOtp;
 use App\Services\AgoraService;
 use App\Services\SmsNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class VideoCallController extends Controller
@@ -27,11 +29,309 @@ class VideoCallController extends Controller
     }
 
     /**
+     * Show OTP verification page.
+     */
+    public function showOtpVerification()
+    {
+        $user = Auth::user();
+        
+        // Check if user has a phone number
+        if (!$user->phone) {
+            return redirect()->route('home')->with('error', 'Please update your phone number to use video call support.');
+        }
+        
+        // Mask the phone number for display
+        $maskedPhone = $this->maskPhoneNumber($user->phone);
+        
+        // Send OTP automatically when page loads
+        $this->sendOtpInternal($user);
+        
+        return view('video.verify-otp', compact('maskedPhone'));
+    }
+
+    /**
+     * Send OTP to customer's phone.
+     */
+    public function sendOtp(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user->phone) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phone number not found. Please update your profile.'
+            ], 400);
+        }
+        
+        $result = $this->sendOtpInternal($user);
+        
+        if ($result['success']) {
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP has been sent to your mobile number.'
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => $result['message']
+        ], 500);
+    }
+
+    /**
+     * Verify OTP submitted by customer.
+     */
+    public function verifyOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'otp' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $user = Auth::user();
+        $otpInput = $request->input('otp');
+        
+        // Find the most recent active OTP for this user
+        $videoCallOtp = VideoCallOtp::where('user_id', $user->id)
+            ->where('is_active', true)
+            ->latest()
+            ->first();
+
+        if (!$videoCallOtp) {
+            return back()->with('error', 'No active OTP found. Please request a new OTP.')->withInput();
+        }
+
+        // Check if OTP is expired
+        if ($videoCallOtp->isExpired()) {
+            return back()->with('error', 'OTP has expired. Please request a new OTP.')->withInput();
+        }
+
+        // Check if OTP is already verified
+        if ($videoCallOtp->isVerified()) {
+            return back()->with('error', 'This OTP has already been used. Please request a new OTP.')->withInput();
+        }
+
+        // Verify the OTP hash
+        if (!hash_equals($videoCallOtp->otp_hash, hash('sha256', $otpInput))) {
+            // Increment attempts
+            $videoCallOtp->increment('attempts');
+            
+            return back()->with('error', 'Invalid OTP. Please try again.')->withInput();
+        }
+
+        // Mark OTP as verified
+        $videoCallOtp->update([
+            'verified_at' => now(),
+            'is_active' => false
+        ]);
+
+        // Store OTP verification status in session
+        Session::put('video_call_otp_verified', true);
+        Session::put('video_call_otp_verified_at', now());
+
+        Log::info('Video call OTP verified', [
+            'user_id' => $user->id,
+            'verified_at' => now()
+        ]);
+
+        return redirect()->route('video.call')->with('success', 'OTP verified successfully. You can now start your video call.');
+    }
+
+    /**
+     * Internal method to send OTP.
+     */
+    protected function sendOtpInternal($user)
+    {
+        try {
+            Log::info('OTP Sending - Starting Process', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'user_name' => $user->name,
+                'user_phone' => $user->phone,
+                'user_phone_type' => gettype($user->phone),
+                'user_phone_is_null' => is_null($user->phone),
+                'user_phone_is_empty' => empty($user->phone),
+            ]);
+
+            // Check if user has a phone number
+            if (!$user->phone) {
+                Log::warning('OTP Sending - No phone number', [
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                ]);
+                return ['success' => false, 'message' => 'Phone number not found. Please update your profile.'];
+            }
+
+            // Normalize phone number to match the working /test-sms format
+            // The /test-sms route uses: '8801859385787' (with country code, no + prefix)
+            $normalizedPhone = $this->normalizePhoneNumber($user->phone);
+            
+            Log::info('OTP Sending - Phone Normalization', [
+                'user_id' => $user->id,
+                'original_phone' => $user->phone,
+                'original_phone_length' => strlen($user->phone),
+                'normalized_phone' => $normalizedPhone,
+                'normalized_phone_length' => strlen($normalizedPhone),
+                'matches_test_format' => $normalizedPhone === '8801859385787',
+            ]);
+
+            // Generate 6-digit OTP
+            $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            
+            Log::info('OTP Sending - OTP Generated', [
+                'user_id' => $user->id,
+                'otp' => $otp,
+                'otp_length' => strlen($otp),
+            ]);
+            
+            // Deactivate any existing active OTPs for this user
+            VideoCallOtp::where('user_id', $user->id)
+                ->where('is_active', true)
+                ->update(['is_active' => false]);
+            
+            // Create new OTP record
+            VideoCallOtp::create([
+                'user_id' => $user->id,
+                'otp_hash' => hash('sha256', $otp),
+                'channel' => 'sms',
+                'expires_at' => now()->addMinutes(10),
+                'verified_at' => null,
+                'attempts' => 0,
+                'is_active' => true
+            ]);
+            
+            // Send OTP via SMS
+            $message = "Your Prime Bank Video Call OTP is: {$otp}. Valid for 10 minutes. Do not share this with anyone.";
+            
+            // DIAGNOSTIC: Log before sending SMS
+            Log::info('OTP Sending - Before SMS Service', [
+                'user_id' => $user->id,
+                'original_phone' => $user->phone,
+                'normalized_phone' => $normalizedPhone,
+                'message' => $message,
+                'message_length' => strlen($message),
+                'sms_service_class' => get_class($this->smsService),
+            ]);
+            
+            Log::info('OTP Sending - Calling SMS Service', [
+                'user_id' => $user->id,
+                'phone_to_send' => $normalizedPhone,
+                'message_preview' => substr($message, 0, 50) . '...',
+            ]);
+            
+            $smsResult = $this->smsService->send($normalizedPhone, $message);
+            
+            Log::info('OTP Sending - SMS Service Returned', [
+                'user_id' => $user->id,
+                'sms_result_success' => $smsResult['success'] ?? false,
+                'sms_result_message' => $smsResult['message'] ?? 'No message',
+                'sms_result_keys' => array_keys($smsResult),
+            ]);
+            
+            // DIAGNOSTIC: Log SMS result
+            Log::info('OTP Sending - SMS Service Result', [
+                'user_id' => $user->id,
+                'phone' => $normalizedPhone,
+                'sms_success' => $smsResult['success'] ?? false,
+                'sms_message' => $smsResult['message'] ?? 'No message',
+            ]);
+            
+            if ($smsResult['success']) {
+                Log::info('Video call OTP sent', [
+                    'user_id' => $user->id,
+                    'phone' => $normalizedPhone,
+                    'expires_at' => now()->addMinutes(10)
+                ]);
+                
+                return ['success' => true];
+            } else {
+                Log::error('Failed to send video call OTP', [
+                    'user_id' => $user->id,
+                    'error' => $smsResult['message']
+                ]);
+                
+                return ['success' => false, 'message' => 'Failed to send OTP. Please try again.'];
+            }
+        } catch (\Exception $e) {
+            Log::error('Error sending video call OTP', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return ['success' => false, 'message' => 'An error occurred. Please try again.'];
+        }
+    }
+
+    /**
+     * Normalize phone number to match SMS provider format
+     * Converts phone numbers to format: 880XXXXXXXXXX (with country code, no + prefix)
+     */
+    protected function normalizePhoneNumber($phone)
+    {
+        if (!$phone) {
+            return null;
+        }
+
+        // Remove all non-numeric characters
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+
+        // If phone starts with 00, replace with 880
+        if (strpos($phone, '00') === 0) {
+            $phone = '880' . substr($phone, 2);
+        }
+        // If phone starts with +, remove the +
+        elseif (strpos($phone, '+') === 0) {
+            $phone = substr($phone, 1);
+        }
+        // If phone starts with 0 (local format), add 880
+        elseif (strpos($phone, '0') === 0 && strlen($phone) === 11) {
+            $phone = '880' . substr($phone, 1);
+        }
+        // If phone doesn't start with 880 and is 10 digits (local format), add 880
+        elseif (strlen($phone) === 10 && strpos($phone, '880') !== 0) {
+            $phone = '880' . $phone;
+        }
+
+        return $phone;
+    }
+
+    /**
+     * Mask phone number for display.
+     */
+    protected function maskPhoneNumber($phone)
+    {
+        if (strlen($phone) <= 4) {
+            return $phone;
+        }
+        
+        $visible = substr($phone, -4);
+        $masked = str_repeat('*', strlen($phone) - 4);
+        
+        return $masked . $visible;
+    }
+
+    /**
      * Customer video call page.
      */
     public function customerCall()
     {
         $user = Auth::user();
+        
+        // Check if OTP is verified
+        if (!Session::get('video_call_otp_verified')) {
+            return redirect()->route('video.verify.otp');
+        }
+        
+        // Check if OTP verification is still valid (within 30 minutes)
+        $verifiedAt = Session::get('video_call_otp_verified_at');
+        if ($verifiedAt && now()->diffInMinutes($verifiedAt) > 30) {
+            Session::forget(['video_call_otp_verified', 'video_call_otp_verified_at']);
+            return redirect()->route('video.verify.otp');
+        }
         
         // Check if user has active queue or session
         $activeQueue = CallQueue::where('user_id', $user->id)
@@ -56,6 +356,27 @@ class VideoCallController extends Controller
         
         try {
             $user = Auth::user();
+            
+            // Check if OTP is verified
+            if (!Session::get('video_call_otp_verified')) {
+                return response()->json([
+                    'type' => 'redirect',
+                    'redirect_url' => route('video.verify.otp'),
+                    'message' => 'Please verify your mobile number with OTP before starting a video call.'
+                ]);
+            }
+            
+            // Check if OTP verification is still valid (within 30 minutes)
+            $verifiedAt = Session::get('video_call_otp_verified_at');
+            if ($verifiedAt && now()->diffInMinutes($verifiedAt) > 30) {
+                Session::forget(['video_call_otp_verified', 'video_call_otp_verified_at']);
+                
+                return response()->json([
+                    'type' => 'redirect',
+                    'redirect_url' => route('video.verify.otp'),
+                    'message' => 'OTP verification has expired. Please verify again.'
+                ]);
+            }
             
             // Check if already in queue
             $existingQueue = CallQueue::where('user_id', $user->id)

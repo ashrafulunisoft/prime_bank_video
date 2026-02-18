@@ -19,10 +19,34 @@ class SmsNotificationService
     public function send(string $phone, string $message): array
     {
         try {
+            // DIAGNOSTIC: Log detailed phone number info
+            $authUser = null;
+            try {
+                $authUser = Auth::user();
+            } catch (\Exception $authEx) {
+                Log::warning('SMS Service - Auth context error', [
+                    'error' => $authEx->getMessage(),
+                ]);
+            }
+
+            Log::info('SMS Service - Phone Number Analysis', [
+                'phone' => $phone,
+                'phone_type' => gettype($phone),
+                'phone_length' => strlen($phone),
+                'phone_is_null' => is_null($phone),
+                'phone_is_empty' => empty($phone),
+                'phone_starts_with_plus' => strpos($phone, '+') === 0,
+                'phone_starts_with_880' => strpos($phone, '880') === 0,
+                'message_length' => strlen($message),
+                'sent_by' => $authUser ? $authUser->name : 'System',
+                'sms_enabled' => config('sms.enabled'),
+                'sms_provider' => config('sms.provider', 'default'),
+            ]);
+
             Log::info('Sending SMS', [
                 'phone' => $phone,
                 'message_length' => strlen($message),
-                'sent_by' => Auth::user()->name ?? 'System'
+                'sent_by' => $authUser ? $authUser->name : 'System'
             ]);
 
             // Check if SMS is enabled
@@ -183,20 +207,57 @@ class SmsNotificationService
             $apiKey = config('sms.bulk.api_key');
             $senderId = config('sms.bulk.sender_id', config('sms.from'));
 
+            Log::info('BulkSMS BD - Preparing Request', [
+                'phone' => $phone,
+                'message' => $message,
+                'api_key_configured' => !empty($apiKey),
+                'api_key_length' => strlen($apiKey ?? ''),
+                'sender_id' => $senderId,
+            ]);
+
             if (!$apiKey) {
+                Log::error('BulkSMS BD - API key not configured');
                 throw new \Exception('BulkSMS API key not configured');
             }
 
-            $response = \Illuminate\Support\Facades\Http::get('https://bulksmsbd.net/api/smsapi', [
+            // Build request parameters
+            $params = [
                 'api_key' => $apiKey,
                 'senderid' => $senderId,
                 'message' => $message,
                 'type' => 'text',
                 'number' => $phone,
+            ];
+
+            Log::info('BulkSMS BD - Sending Request', [
+                'url' => 'https://bulksmsbd.net/api/smsapi',
+                'params' => [
+                    'api_key' => substr($apiKey, 0, 4) . '...' . substr($apiKey, -4), // Mask API key
+                    'senderid' => $senderId,
+                    'message' => $message,
+                    'type' => 'text',
+                    'number' => $phone,
+                ],
+            ]);
+
+            $response = \Illuminate\Support\Facades\Http::get('https://bulksmsbd.net/api/smsapi', $params);
+
+            Log::info('BulkSMS BD - API Response', [
+                'status_code' => $response->status(),
+                'successful' => $response->successful(),
+                'body' => $response->body(),
+                'json_decode_success' => json_decode($response->body()) !== null,
             ]);
 
             if ($response->successful()) {
                 $responseData = json_decode($response->body(), true);
+
+                Log::info('BulkSMS BD - Response Data', [
+                    'response_code' => $responseData['response_code'] ?? 'N/A',
+                    'response_message' => $responseData['response_message'] ?? 'N/A',
+                    'message_id' => $responseData['message_id'] ?? 'N/A',
+                    'success_status' => isset($responseData['response_code']) && $responseData['response_code'] == 202,
+                ]);
 
                 // Check if SMS was submitted successfully
                 if (isset($responseData['response_code']) && $responseData['response_code'] == 202) {
@@ -208,11 +269,21 @@ class SmsNotificationService
                 }
             }
 
+            $errorMessage = $response->body() ?? 'Unknown error';
+            Log::error('BulkSMS BD - Request Failed', [
+                'error' => $errorMessage,
+                'status_code' => $response->status(),
+            ]);
+
             return [
                 'success' => false,
-                'message' => $response->body() ?? 'Unknown error'
+                'message' => $errorMessage
             ];
         } catch (\Exception $e) {
+            Log::error('BulkSMS BD - Exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return [
                 'success' => false,
                 'message' => $e->getMessage()
