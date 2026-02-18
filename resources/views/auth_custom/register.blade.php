@@ -137,6 +137,25 @@
             box-shadow: 0 10px 30px rgba(11, 214, 150, 0.4);
         }
 
+        .logo-responsive {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .logo-responsive {
+                max-width: 180px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .logo-responsive {
+                max-width: 150px;
+            }
+        }
+
         .alert-danger-custom {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.3);
@@ -328,6 +347,25 @@
             box-shadow: 0 10px 30px rgba(11, 214, 150, 0.4);
         }
 
+        .logo-responsive {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .logo-responsive {
+                max-width: 180px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .logo-responsive {
+                max-width: 150px;
+            }
+        }
+
         .alert-danger-custom {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.3);
@@ -437,8 +475,8 @@
             <i class="fas fa-university"></i>
         </div> --}}
 
-        <div class="text-center gap-3 mb-3 ">
-                <img class="bg-white " src="{{ asset('vms/logo/pragatiLogo.png') }}" style="height: 80px; width: 150px; border-radius:10px;" alt="UCB Bank Logo">
+        <div class="text-center gap-3 mb-3">
+            <img class="bg-white logo-responsive" src="{{ asset('vms/logo/primebank_logo.png') }}" alt="Prime Bank Logo">
         </div>
 
 
