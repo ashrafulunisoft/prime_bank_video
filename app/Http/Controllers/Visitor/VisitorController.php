@@ -31,9 +31,53 @@ class VisitorController extends Controller
      */
     public function dashboard()
     {
-        // dd("Hello"); 
+        // dd("Hello");
+        // Get Video Call Statistics
+        $today = now()->startOfDay();
+        $totalCallsToday = \App\Models\CallSession::whereDate('started_at', $today)->count();
+        $activeCalls = \App\Models\CallSession::where('status', 'active')->count();
+        $callsInQueue = \App\Models\CallQueue::where('status', 'waiting')->count();
+        $totalAgents = \App\Models\Agent::count();
+        $freeAgents = \App\Models\Agent::where('status', 'free')->count();
+
+        // Calculate total call duration
+        $totalDuration = \App\Models\CallSession::where('status', 'completed')
+            ->sum('duration');
+        $totalCallDurationFormatted = gmdate('H:i:s', $totalDuration);
+
+        // Calculate average call duration
+        $completedCalls = \App\Models\CallSession::where('status', 'completed')->count();
+        $avgCallDuration = $completedCalls > 0 ? round($totalDuration / $completedCalls / 60) : 0;
+        $avgCallDurationText = $avgCallDuration . 'm';
+
+        // Calculate waiting time
+        $waitingQueueEntries = \App\Models\CallQueue::where('status', 'waiting')->get();
+        $totalWaitingTime = 0;
+        foreach ($waitingQueueEntries as $entry) {
+            $totalWaitingTime += $entry->wait_time;
+        }
+        $avgWaitingTime = $callsInQueue > 0 ? round($totalWaitingTime / $callsInQueue) : 0;
+        $avgWaitingTimeText = $avgWaitingTime . 's';
+        $totalWaitingTimeFormatted = gmdate('H:i:s', $totalWaitingTime);
+
+        // Calculate average customer rating
+        $avgCustomerRating = \App\Models\CallFeedback::avg('rating') ?? 0;
+
         // Get visitor statistics based on user permissions
         $stats = [
+            // Video Call Statistics
+            'total_calls_today' => $totalCallsToday,
+            'active_calls' => $activeCalls,
+            'calls_in_queue' => $callsInQueue,
+            'total_agents' => $totalAgents,
+            'free_agents' => $freeAgents,
+            'total_call_duration_formatted' => $totalCallDurationFormatted,
+            'avg_call_duration' => $avgCallDurationText,
+            'avg_waiting_time' => $avgWaitingTimeText,
+            'total_waiting_time' => $totalWaitingTimeFormatted,
+            'avg_customer_rating' => $avgCustomerRating,
+
+            // Visitor Statistics
             'total_visitors' => Visitor::count(),
             'total_visits' => Visit::count(),
             'pending_visits' => Visit::where('status', 'pending')->count(),

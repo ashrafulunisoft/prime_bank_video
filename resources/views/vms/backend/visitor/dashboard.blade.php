@@ -13,6 +13,35 @@
         border-radius: 24px;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     }
+    .summary-card {
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .summary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(59, 130, 246, 0.2);
+    }
+    .summary-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
     .stat-card {
         padding: 1.5rem;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -83,6 +112,35 @@
     .badge-warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
     .badge-secondary { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
 
+    .log-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .log-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    .log-container::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+    }
+    .log-container::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+    }
+    .log-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .border-dashed {
+        border-style: dashed !important;
+    }
+
     .section-title {
         font-size: 1.1rem;
         font-weight: 700;
@@ -132,7 +190,7 @@
         </div>
     </div>
 
-    @if(auth()->user()->hasRole('visitor'))
+    @if(auth()->user()->hasRole('visitor') || auth()->user()->hasRole('receptionist'))
     <!-- Stats Overview Row 1 - Video Call Analytics -->
     <div class="row g-4 mb-4">
         <div class="col-md-3">
@@ -220,60 +278,58 @@
         </div>
     </div>
 
-    <!-- My Calls in Queue -->
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <div class="glass-card">
-                <div class="p-4" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <h5 class="section-title mb-0"><i class="fas fa-list-ol me-2" style="color: #8b5cf6;"></i>My Queue Position</h5>
+    @endif
+
+    <!-- Visitor Management Stats Row (from Receptionist Dashboard) -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-xl">
+            <div class="glass-card summary-card">
+                <div>
+                    <span class="sub-label d-block mb-1">Total Visitors</span>
+                    <h2>{{ $stats['total_visitors'] ?? 0 }}</h2>
                 </div>
-                <div class="p-0">
-                    <div class="table-responsive">
-                        <table class="table table-dark-custom mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Position</th>
-                                    <th>Waiting Since</th>
-                                    <th>Estimated Wait</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php
-                                    $myQueuePosition = \App\Models\CallQueue::where('user_id', auth()->id())->where('status', 'waiting')->first();
-                                @endphp
-                                @if($myQueuePosition)
-                                    <tr>
-                                        <td>
-                                            <span class="fw-700" style="font-size: 1rem; color: #8b5cf6;">#{{ $myQueuePosition->position ?? 0 }}</span>
-                                        </td>
-                                        <td>{{ $myQueuePosition->joined_at ? $myQueuePosition->joined_at->diffForHumans() : '--' }}</td>
-                                        <td>
-                                            <span class="fw-600" style="color: #f59e0b;">{{ $myQueuePosition->estimated_wait_time ?? '5-10 min' }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge-glass badge-warning">WAITING</span>
-                                        </td>
-                                    </tr>
-                                @else
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4">
-                                            <i class="fas fa-check-circle mb-2" style="font-size: 1.5rem; color: #22c55e;"></i>
-                                            <p class="mb-0" style="color: #94a3b8;">You are not in the queue</p>
-                                        </td>
-                                    </tr>
-                                @endif
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="summary-icon"><i class="fas fa-users"></i></div>
+            </div>
+        </div>
+        <div class="col-6 col-xl">
+            <div class="glass-card summary-card">
+                <div>
+                    <span class="sub-label d-block mb-1">Today's Visits</span>
+                    <h2>{{ $stats['visits_today'] ?? 0 }}</h2>
                 </div>
+                <div class="summary-icon"><i class="fas fa-calendar-day"></i></div>
+            </div>
+        </div>
+        <div class="col-6 col-xl">
+            <div class="glass-card summary-card">
+                <div>
+                    <span class="sub-label d-block mb-1">Pending</span>
+                    <h2>{{ $stats['pending_visits'] ?? 0 }}</h2>
+                </div>
+                <div class="summary-icon" style="color: var(--accent-amber); background: rgba(245, 158, 11, 0.1);"><i class="fas fa-clock"></i></div>
+            </div>
+        </div>
+        <div class="col-6 col-xl">
+            <div class="glass-card summary-card">
+                <div>
+                    <span class="sub-label d-block mb-1">Active Visits</span>
+                    <h2>{{ $stats['active_visits'] ?? 0 }}</h2>
+                </div>
+                <div class="summary-icon" style="color: var(--accent-emerald); background: rgba(16, 185, 129, 0.1);"><i class="fas fa-user-check"></i></div>
+            </div>
+        </div>
+        <div class="col-12 col-xl">
+            <div class="glass-card summary-card justify-content-center cursor-pointer border-dashed" style="border-width: 2px;">
+                <a href="{{ route('visitor.create') }}" class="d-flex align-items-center gap-2 text-white text-decoration-none">
+                    <i class="fas fa-plus"></i>
+                    <span class="fw-bold text-uppercase fs-9">Register New Visitor</span>
+                </a>
             </div>
         </div>
     </div>
-    @endif
 
-    <!-- Insurance Stats Row -->
-    @if(isset($insuranceStats) && ($insuranceStats['total_policies'] > 0 || $insuranceStats['total_claims'] > 0))
+    <!-- Insurance Stats Row (only for visitors) -->
+    @if(auth()->user()->hasRole('visitor') && isset($insuranceStats) && ($insuranceStats['total_policies'] > 0 || $insuranceStats['total_claims'] > 0))
     <div class="row g-4 mb-4">
         <div class="col-md-3">
             <div class="glass-card stat-card">
@@ -314,65 +370,197 @@
     </div>
     @endif
 
-    <!-- Stats Row - Based on permissions -->
+
+    <!-- Today's Visits (from Receptionist Dashboard) -->
+    @if($todayVisits->count() > 0)
     <div class="row g-4 mb-4">
-        <div class="col-6 col-xl">
-            <div class="glass-card stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h6 class="fw-800 sub-label mb-4">Today's Visits</h6>
+                <div class="table-responsive log-container">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Visitor</th>
+                                <th>Host</th>
+                                <th>Visit Type</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($todayVisits as $visit)
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <span class="fw-800 small">{{ substr($visit->visitor->name, 0, 1) }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="small fw-800 d-block">{{ $visit->visitor->name }}</span>
+                                            <span class="fs-9 text-white-50">{{ $visit->visitor->phone ?? 'N/A' }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="small">{{ $visit->meetingUser->name }}</td>
+                                <td class="small">{{ $visit->type->name ?? 'N/A' }}</td>
+                                <td class="small">{{ \Carbon\Carbon::parse($visit->schedule_time)->format('g:i A') }}</td>
+                                <td>
+                                    @if($visit->status == 'approved')
+                                        <span class="status-badge" style="color: var(--accent-emerald);">Active</span>
+                                    @elseif($visit->status == 'pending')
+                                        <span class="status-badge" style="color: var(--accent-amber);">Pending</span>
+                                    @elseif($visit->status == 'completed')
+                                        <span class="status-badge">Completed</span>
+                                    @else
+                                        <span class="status-badge text-danger">Cancelled</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        @can('edit visitors')
+                                        <a href="{{ route('visitor.edit', $visit->id) }}" class="btn btn-circle" style="color: var(--accent-emerald);" title="Edit">
+                                            <i class="fas fa-edit small"></i>
+                                        </a>
+                                        @endcan
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-                <h3 class="fw-800 mb-1" style="font-size: 2rem; color: #fff;">{{ $stats['total_visitors'] }}</h3>
-                <p style="color: #94a3b8; margin-bottom: 0;">Total Visitors</p>
             </div>
         </div>
-        <div class="col-6 col-xl">
-            <div class="glass-card stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-calendar-day"></i>
+    </div>
+    @endif
+
+    <!-- Pending Visits (from Receptionist Dashboard) -->
+    @if($pendingVisits->count() > 0)
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h6 class="fw-800 sub-label mb-4">Pending Approvals</h6>
+                <div class="table-responsive log-container">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Visitor</th>
+                                <th>Purpose</th>
+                                <th>Host</th>
+                                <th>Requested</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($pendingVisits as $visit)
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <span class="fw-800 small">{{ substr($visit->visitor->name, 0, 1) }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="small fw-800 d-block">{{ $visit->visitor->name }}</span>
+                                            <span class="fs-9 text-white-50">{{ $visit->visitor->email }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="small">{{ substr($visit->purpose, 0, 30) }}...</td>
+                                <td class="small">{{ $visit->meetingUser->name }}</td>
+                                <td class="small">{{ $visit->created_at->diffForHumans() }}</td>
+                                <td>
+                                    <span class="status-badge" style="color: var(--accent-amber);">Pending</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        @can('edit visitors')
+                                        <a href="{{ route('visitor.edit', $visit->id) }}" class="btn btn-circle" style="color: var(--accent-emerald);" title="Edit/Approve">
+                                            <i class="fas fa-edit small"></i>
+                                        </a>
+                                        @endcan
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-                <h3 class="fw-800 mb-1" style="font-size: 2rem; color: #fff;">{{ $stats['visits_today'] }}</h3>
-                <p style="color: #94a3b8; margin-bottom: 0;">Today's Visits</p>
             </div>
         </div>
-        <div class="col-6 col-xl">
-            <div class="glass-card stat-card">
-                <div class="stat-icon warning">
-                    <i class="fas fa-clock"></i>
+    </div>
+    @endif
+
+    <!-- Recent Visits Log (from Receptionist Dashboard) -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h6 class="fw-800 sub-label mb-4">Recent Visits Log</h6>
+                <div class="table-responsive log-container">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Visitor</th>
+                                <th>Host</th>
+                                <th>Purpose</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($recentVisits as $visit)
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <span class="fw-800 small">{{ substr($visit->visitor->name, 0, 1) }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="small fw-800 d-block">{{ $visit->visitor->name }}</span>
+                                            <span class="fs-9 text-white-50">{{ $visit->visitor->email }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="small">{{ $visit->meetingUser->name }}</td>
+                                <td class="small">{{ substr($visit->purpose, 0, 25) }}...</td>
+                                <td class="small">{{ \Carbon\Carbon::parse($visit->schedule_time)->format('M j, Y') }}</td>
+                                <td>
+                                    @if($visit->status == 'approved')
+                                        <span class="status-badge" style="color: var(--accent-emerald);">Active</span>
+                                    @elseif($visit->status == 'pending')
+                                        <span class="status-badge" style="color: var(--accent-amber);">Pending</span>
+                                    @elseif($visit->status == 'completed')
+                                        <span class="status-badge">Completed</span>
+                                    @else
+                                        <span class="status-badge text-danger">Cancelled</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('visitor.show', $visit->id) }}" class="btn btn-circle" style="color: var(--accent-teal);" title="View Details">
+                                            <i class="fas fa-eye small"></i>
+                                        </a>
+                                        @can('edit visitors')
+                                        <a href="{{ route('visitor.edit', $visit->id) }}" class="btn btn-circle" style="color: var(--accent-emerald);" title="Edit">
+                                            <i class="fas fa-edit small"></i>
+                                        </a>
+                                        @endcan
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-                <h3 class="fw-800 mb-1" style="font-size: 2rem; color: #fff;">{{ $stats['pending_visits'] }}</h3>
-                <p style="color: #94a3b8; margin-bottom: 0;">Pending</p>
             </div>
-        </div>
-        <div class="col-6 col-xl">
-            <div class="glass-card stat-card">
-                <div class="stat-icon success">
-                    <i class="fas fa-user-check"></i>
-                </div>
-                <h3 class="fw-800 mb-1" style="font-size: 2rem; color: #fff;">{{ $stats['active_visits'] }}</h3>
-                <p style="color: #94a3b8; margin-bottom: 0;">Active Visits</p>
-            </div>
-        </div>
-        <div class="col-12 col-xl">
-            @can('create visitors')
-            <a href="{{ route('visitor.create') }}" class="glass-card stat-card justify-content-center cursor-pointer border-dashed text-decoration-none" style="border-width: 2px;">
-                <div class="d-flex align-items-center gap-2 text-white">
-                    <i class="fas fa-plus"></i>
-                    <span class="fw-bold text-uppercase fs-9">Register New Visitor</span>
-                </div>
-            </a>
-            @else
-            <div class="glass-card stat-card justify-content-center border-dashed" style="border-width: 2px;">
-                <div class="d-flex align-items-center gap-2 text-white">
-                    <i class="fas fa-lock"></i>
-                    <span class="fw-bold text-uppercase fs-9">No Permission to Register Visitors</span>
-                </div>
-            </div>
-            @endcan
         </div>
     </div>
 
-    <!-- My Policies Section -->
-    @if(isset($userOrders) && $userOrders->count() > 0)
+    <!-- My Policies Section (only for visitors) -->
+    @if(auth()->user()->hasRole('visitor') && isset($userOrders) && $userOrders->count() > 0)
     <div class="row g-4 mb-4">
         <div class="col-12">
             <div class="glass-card">
@@ -484,8 +672,8 @@
         </div>
     </div>
 
-    <!-- My Claims Section -->
-    @if(isset($userClaims) && $userClaims->count() > 0)
+    <!-- My Claims Section (only for visitors) -->
+    @if(auth()->user()->hasRole('visitor') && isset($userClaims) && $userClaims->count() > 0)
     <div class="row g-4 mb-4">
         <div class="col-12">
             <div class="glass-card">
