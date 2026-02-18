@@ -315,7 +315,10 @@
                 return;
             }
             
-            if (data.type === 'connect') {
+            if (data.type === 'redirect') {
+                // Redirect to OTP verification page
+                window.location.href = data.redirect_url;
+            } else if (data.type === 'connect') {
                 await joinChannel(data);
             } else if (data.type === 'queue') {
                 queueId = data.queue_id;

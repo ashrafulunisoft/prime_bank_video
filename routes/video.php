@@ -11,6 +11,11 @@ use App\Http\Controllers\VideoCallController;
 
 // Customer routes (authenticated)
 Route::middleware(['auth'])->group(function () {
+    // OTP verification for video call
+    Route::get('/video/verify-otp', [VideoCallController::class, 'showOtpVerification'])->name('video.verify.otp');
+    Route::post('/video/send-otp', [VideoCallController::class, 'sendOtp'])->name('video.send.otp');
+    Route::post('/video/verify-otp', [VideoCallController::class, 'verifyOtp'])->name('video.verify.otp.submit');
+    
     // Customer video call page
     Route::get('/video/call', [VideoCallController::class, 'customerCall'])->name('video.call');
     
