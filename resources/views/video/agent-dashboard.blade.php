@@ -184,7 +184,7 @@
             <div class="stat-label">Total Duration</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">{{ $pendingQueue }}</div>
+            <div class="stat-value" id="queue-count">{{ $pendingQueue }}</div>
             <div class="stat-label">Waiting in Queue</div>
         </div>
         <div class="stat-card">
@@ -286,6 +286,33 @@
     let isCameraOff = false;
     let isScreenSharing = false;
     let sessionId = null;
+    let queuePollingInterval = null;
+
+    // Start queue status polling
+    function startQueuePolling() {
+        // Poll every 3 seconds for queue status updates
+        queuePollingInterval = setInterval(async () => {
+            try {
+                const response = await fetch('/video/agent/queue-status');
+                const data = await response.json();
+                
+                if (data.pending_queue !== undefined) {
+                    // Update the queue count display
+                    const queueCountElement = document.getElementById('queue-count');
+                    if (queueCountElement) {
+                        queueCountElement.textContent = data.pending_queue;
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling queue status:', error);
+            }
+        }, 3000);
+    }
+
+    // Start polling when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        startQueuePolling();
+    });
 
     // Set Status
     async function setStatus(status) {

@@ -41,6 +41,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/video/agent/dashboard', [VideoCallController::class, 'agentDashboard'])->name('video.agent.dashboard');
     Route::post('/video/agent/status', [VideoCallController::class, 'agentStatus'])->name('video.agent.status');
     Route::post('/video/agent/start-call', [VideoCallController::class, 'agentStartCall'])->name('video.agent.start.call');
+    Route::get('/video/agent/queue-status', [VideoCallController::class, 'agentQueueStatus'])->name('video.agent.queue.status');
 });
 
 // Admin routes
