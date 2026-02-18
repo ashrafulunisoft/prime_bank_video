@@ -102,7 +102,7 @@
         }
 
         .btn-gradient {
-            background: linear-gradient(135deg, #0bd696, #0d5540);
+            background: linear-gradient(135deg, #4f46e5, #3b82f6);
             border: none;
             border-radius: 100px;
             padding: 16px;
@@ -112,13 +112,13 @@
             letter-spacing: 2px;
             font-size: 0.85rem;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 20px rgba(11, 214, 150, 0.6), 0 0 40px rgba(11, 214, 150, 0.3);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3);
             width: 100%;
         }
 
         .btn-gradient:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(11, 214, 150, 0.5);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5);
             filter: brightness(1.1);
         }
 
@@ -207,15 +207,16 @@
 
     <style>
         :root {
-            /* --bg-page: linear-gradient(135deg, #0bd696 0%, #0d5540 100%); */
-            --bg-page: linear-gradient(135deg, #4ab59a 0%, #0d5540 100%);
-            --sidebar-bg: #0a3d2a;
-            --accent-green: #0bd696;
-            --accent-dark-green: #0d5540;
-            --glass-card: rgba(13, 85, 64, 0.7);
+            --bg-page: radial-gradient(circle at center, #101d42 0%, #060b1d 100%);
+            --sidebar-bg: #111a30;
+            --accent-indigo: #4f46e5;
+            --accent-blue: #3b82f6;
+            --accent-pink: #db2777;
+            --glass-card: rgba(15, 23, 42, 0.7);
             --glass-border: rgba(255, 255, 255, 0.08);
-            --neon-green: 0 0 20px rgba(11, 214, 150, 0.4), 0 0 40px rgba(11, 214, 150, 0.2);
-            --text-muted: #000000;
+            --neon-blue: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.2);
+            --neon-indigo: 0 8px 25px rgba(79, 70, 229, 0.4);
+            --text-muted: #94a3b8;
         }
 
         body {
@@ -223,7 +224,7 @@
             background: var(--bg-page);
             background-attachment: fixed;
             min-height: 100vh;
-            color: #000000;
+            color: #fff;
             margin: 0;
             display: flex;
             align-items: center;
@@ -292,7 +293,7 @@
         }
 
         .btn-gradient {
-            background: linear-gradient(135deg, #000000, #0d5540);
+            background: linear-gradient(135deg, #4f46e5, #3b82f6);
             border: none;
             border-radius: 100px;
             padding: 16px;
@@ -302,13 +303,13 @@
             letter-spacing: 2px;
             font-size: 0.85rem;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 20px rgba(11, 214, 150, 0.6), 0 0 40px rgba(11, 214, 150, 0.3);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3);
             width: 100%;
         }
 
         .btn-gradient:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(11, 214, 150, 0.5);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5);
             filter: brightness(1.1);
         }
 
