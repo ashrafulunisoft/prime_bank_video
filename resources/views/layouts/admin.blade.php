@@ -280,10 +280,27 @@
 
         .logo-vms {
             background: #fff; color: #1e293b;
-            width: 40px; height: 40px;
-            border-radius: 10px; font-weight: 900;
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            border-radius: 10px;
+            font-weight: 900;
             box-shadow: 0 0 15px rgba(255,255,255,0.2);
             display: flex; align-items: center; justify-content: center;
+        }
+        
+        @media (max-width: 768px) {
+            .logo-vms {
+                width: 80%;
+                max-width: 150px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .logo-vms {
+                width: 70%;
+                max-width: 120px;
+            }
         }
 
         .sub-label { color: var(--text-muted); font-size: 11px; text-transform: uppercase; font-weight: 800; letter-spacing: 1.5px; }
