@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'UCB Bank - VMS Professional Dashboard')</title>
+    <title>@yield('title', 'Prime Bank - Video Call Support Dashboard')</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts: Inter -->
@@ -510,8 +510,8 @@
     <!-- Mobile Navigation Bar -->
     <div class="mobile-top-nav">
         <div class="d-flex align-items-center gap-2">
-            <div class="logo-vms">V</div>
-            <h6 class="mb-0 fw-800 text-white">UCB BANK</h6>
+            <img src="{{ asset('vms/logo/prime-bank-logo-squre.jpg') }}" style="height: 40px; width: 40px; border-radius: 8px;" alt="Prime Bank Logo">
+            <h6 class="mb-0 fw-800 text-white">PRIME BANK</h6>
         </div>
         <button class="btn text-white p-0" onclick="toggleSidebar()">
             <i class="fas fa-bars fs-4"></i>
@@ -524,24 +524,33 @@
     <div id="page-admin-dashboard" class="vms-page">
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
-            <div class="d-flex align-items-center gap-3 mb-3 ">
-                <img class="bg-white " src="{{ asset('vms/logo/ucb-bank-logo-bg_removed.png') }}" style="height: 80px; width: 100vh; border-radius:10px;" alt="UCB Bank Logo">
+            <div class="d-flex align-items-center justify-content-center gap-3 mb-4">
+                <img src="{{ asset('vms/logo/primebank_logo.png') }}" style="height: 60px; width: auto; max-width: 100%; border-radius: 8px;" alt="Prime Bank Logo">
             </div>
 
             <nav>
+                {{-- Dashboard --}}
                 <a href="{{ route('admin.dashboard') }}" class="sidebar-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"><i class="fas fa-th-large"></i> Dashboard</a>
-                {{-- <a href="{{ route('admin.live.dashboard') }}" class="sidebar-item {{ request()->routeIs('admin.live.dashboard') ? 'active' : '' }}"><i class="fas fa-broadcast-tower"></i> Live Dashboard</a> --}}
-                {{-- <a href="{{ route('admin.visitor.registration.create') }}" class="sidebar-item {{ request()->routeIs('admin.visitor.registration.create') ? 'active' : '' }}"><i class="fas fa-plus"></i> Visitor Registration</a> --}}
-                {{-- <a href="{{ route('admin.visitor.list') }}" class="sidebar-item {{ request()->routeIs('admin.visitor.list') ? 'active' : '' }}"><i class="fas fa-users"></i> Visitor List</a> --}}
+
+                {{-- Insurance Modules (Commented Out) --}}
+                {{--
                 <a href="{{ route('insurance-packages.index') }}" class="sidebar-item {{ request()->routeIs('insurance-packages.*') ? 'active' : '' }}"><i class="fas fa-box"></i> Insurance Packages</a>
                 <a href="{{ route('admin.policies.index') }}" class="sidebar-item {{ request()->routeIs('admin.policies.*') ? 'active' : '' }}"><i class="fas fa-file-contract"></i> Policies</a>
                 <a href="{{ route('admin.claims.index') }}" class="sidebar-item {{ request()->routeIs('admin.claims.*') ? 'active' : '' }}"><i class="fas fa-clipboard-list"></i> Claims</a>
-                <a href="{{ route('admin.profile') }}" class="sidebar-item {{ request()->routeIs('admin.profile') ? 'active' : '' }}"><i class="fas fa-user"></i> My Profile</a>
-                {{-- <a href="#" class="sidebar-item"><i class="fas fa-history"></i> View History</a> --}}
-                {{-- <a href="#" class="sidebar-item"><i class="fas fa-user-plus"></i> Add New User</a> --}}
-                {{-- <a href="#" class="sidebar-item"><i class="fas fa-list"></i> Visitor's Log</a> --}}
-                {{-- <a href="#" class="sidebar-item"><i class="fas fa-users"></i> All Users</a> --}}
+                --}}
 
+                {{-- Visitor Management (Commented Out) --}}
+                {{--
+                <a href="{{ route('admin.live.dashboard') }}" class="sidebar-item {{ request()->routeIs('admin.live.dashboard') ? 'active' : '' }}"><i class="fas fa-broadcast-tower"></i> Live Dashboard</a>
+                <a href="{{ route('admin.visitor.registration.create') }}" class="sidebar-item {{ request()->routeIs('admin.visitor.registration.create') ? 'active' : '' }}"><i class="fas fa-plus"></i> Visitor Registration</a>
+                <a href="{{ route('admin.visitor.list') }}" class="sidebar-item {{ request()->routeIs('admin.visitor.list') ? 'active' : '' }}"><i class="fas fa-users"></i> Visitor List</a>
+                --}}
+
+                {{-- User Profile --}}
+                <a href="{{ route('admin.profile') }}" class="sidebar-item {{ request()->routeIs('admin.profile') ? 'active' : '' }}"><i class="fas fa-user"></i> My Profile</a>
+
+                {{-- RBAC Roles (Commented Out - Uncomment if needed) --}}
+                {{--
                 <div class="sidebar-dropdown">
                     <a href="#" class="sidebar-item d-flex align-items-center" onclick="toggleSubmenu(event)">
                         <i class="fas fa-user-shield"></i> RBAC Roles
@@ -552,17 +561,21 @@
                         <a href="{{ route('admin.role.assign.create') }}" class="submenu-item"><i class="fas fa-user-tag"></i> Assign Role</a>
                     </div>
                 </div>
+                --}}
 
-                <a href="{{ route('logout') }}" class="sidebar-item text-danger"><i class="fas fa-cog"></i> Logout</a>
-                {{-- <a href="#" class="sidebar-item"><i class="fas fa-cog"></i> Settings</a> --}}
+                {{-- Logout --}}
+                <a href="{{ route('logout') }}" class="sidebar-item text-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </nav>
 
+            {{-- Help Center (Commented Out) --}}
+            {{--
             <div class="help-center-box">
                 <div class="help-icon text-white">?</div>
                 <h6 class="fw-bold mb-1 text-white">Help Center</h6>
                 <p style="font-size: 10px;" class="text-white-50 mb-3">24/7 Security Support</p>
                 <button class="btn btn-light btn-sm w-100 rounded-pill fw-800 text-primary" style="font-size: 10px;">SUPPORT</button>
             </div>
+            --}}
         </div>
 
         <!-- Main Content -->

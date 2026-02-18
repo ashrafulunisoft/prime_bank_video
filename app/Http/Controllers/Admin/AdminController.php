@@ -24,8 +24,62 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
+        // Get Video Call Statistics
+        $today = now()->startOfDay();
+        $weekStart = now()->startOfWeek();
+        $monthStart = now()->startOfMonth();
+        
+        // Call counts
+        $totalCallsToday = \App\Models\CallSession::whereDate('started_at', $today)->count();
+        $totalCallsWeekly = \App\Models\CallSession::where('started_at', '>=', $weekStart)->count();
+        $totalCallsMonthly = \App\Models\CallSession::where('started_at', '>=', $monthStart)->count();
+        $activeCalls = \App\Models\CallSession::where('status', 'active')->count();
+        $callsInQueue = \App\Models\CallQueue::where('status', 'waiting')->count();
+        
+        // Agent stats
+        $totalAgents = \App\Models\Agent::count();
+        $freeAgents = \App\Models\Agent::where('status', 'free')->count();
+        
+        // Duration stats
+        $todaySessions = \App\Models\CallSession::whereDate('started_at', $today)->get();
+        $totalDurationToday = $todaySessions->sum('duration');
+        $totalCallDurationFormatted = gmdate('H:i:s', $totalDurationToday);
+        $avgCallDuration = $todaySessions->count() > 0 ? round($todaySessions->avg('duration') / 60) . 'm' : '0m';
+        
+        // Waiting time stats
+        $queueEntries = \App\Models\CallQueue::whereDate('created_at', $today)->get();
+        $totalWaitTime = $queueEntries->sum('wait_time');
+        $totalWaitingTimeFormatted = floor($totalWaitTime / 3600) . 'h ' . floor(($totalWaitTime % 3600) / 60) . 'm';
+        $avgWaitingTime = $queueEntries->count() > 0 ? round($queueEntries->avg('wait_time') / 60) . 'm' : '0m';
+        
+        // Rating stats
+        $todayFeedback = \App\Models\CallFeedback::whereDate('created_at', $today);
+        $avgRating = $todayFeedback->count() > 0 ? round($todayFeedback->avg('rating'), 1) : '0.0';
+        $totalFeedback = $todayFeedback->count();
+        
+        // Satisfaction rate (ratings >= 4)
+        $satisfiedCount = \App\Models\CallFeedback::whereDate('created_at', $today)->where('rating', '>=', 4)->count();
+        $satisfactionRate = $totalFeedback > 0 ? round(($satisfiedCount / $totalFeedback) * 100) . '%' : '0%';
+
         // Get statistics for dashboard
         $stats = [
+            // Video Call Stats
+            'total_calls_today' => $totalCallsToday,
+            'total_calls_weekly' => $totalCallsWeekly,
+            'total_calls_monthly' => $totalCallsMonthly,
+            'active_calls' => $activeCalls,
+            'calls_in_queue' => $callsInQueue,
+            'total_agents' => $totalAgents,
+            'free_agents' => $freeAgents,
+            'total_call_duration_formatted' => $totalCallDurationFormatted,
+            'avg_call_duration' => $avgCallDuration,
+            'total_waiting_time' => $totalWaitingTimeFormatted,
+            'avg_waiting_time' => $avgWaitingTime,
+            'avg_customer_rating' => $avgRating,
+            'total_feedback' => $totalFeedback,
+            'satisfaction_rate' => $satisfactionRate,
+            
+            // Visitor Management Stats (kept for compatibility)
             'total_visitors' => \App\Models\Visitor::count(),
             'total_visits' => \App\Models\Visit::count(),
             'pending_visits' => \App\Models\Visit::where('status', 'pending_host')->count(),
