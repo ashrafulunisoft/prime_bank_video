@@ -163,9 +163,9 @@
         <div>
             <h3 class="fw-800 mb-1 text-white letter-spacing-1">
                 @php
-                    $dashboardTitle = 'Visitor Dashboard';
+                    $dashboardTitle = 'Customer';
                     if(auth()->user()->hasRole('receptionist')) {
-                        $dashboardTitle = 'Receptionist Dashboard';
+                        $dashboardTitle = 'Customer Care';
                     } elseif(auth()->user()->hasRole('staff')) {
                         $dashboardTitle = 'Staff Dashboard';
                     }
