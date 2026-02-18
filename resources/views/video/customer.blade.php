@@ -166,11 +166,11 @@
             <div class="col-lg-9">
                 <div class="video-container">
                     <div class="video-wrapper">
-                        <video id="local-video" autoplay muted playsinline></video>
+                        <div id="local-video" style="width: 100%; height: 100%;"></div>
                         <span class="video-label">You</span>
                     </div>
                     <div class="video-wrapper">
-                        <video id="remote-video" autoplay playsinline></video>
+                        <div id="remote-video" style="width: 100%; height: 100%;"></div>
                         <span class="video-label" id="remote-label">Waiting for agent...</span>
                     </div>
                 </div>
