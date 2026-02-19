@@ -4,19 +4,19 @@
 <div class="role-container">
     <div class="glass-card glass-card-dark">
         <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.5rem;">
-            <div class="d-flex align-items-center gap-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center align-items-md-center gap-3 gap-md-0" style="margin-bottom: 3.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.5rem;">
+            <div class="d-flex align-items-center gap-3 text-center text-md-start">
                 {{-- <div class="logo-vms" style="width: 44px; height: 44px; font-size: 1.2rem;">V</div> --}}
-                <div class="text-center gap-3 mb-3 ">
-                    <img class="bg-white " src="{{ asset('vms/logo/primebank_logo.png') }}" style="height: 80px; width: 100px; border-radius:10px;" alt="Prime Bank Logo">
+                <div class="mb-3 mb-md-0">
+                    <img class="bg-white" src="{{ asset('vms/logo/primebank_logo.png') }}" style="height: 70px; width: 150px; border-radius:10px;" alt="Prime Bank Logo">
                 </div>
                 <div>
-                    <h6 class="fw-800 mb-0 text-white text-shadow-white">Prime Bank Limited</h6>
+                    <h6 class="fw-800 mb-0 text-white text-shadow-white" style="font-size: 1rem;">Prime Bank Limited</h6>
                     <span class="permission-title" style="font-size: 0.7rem; margin: 0; text-shadow-blue">VISITOR SYSTEM</span>
                 </div>
             </div>
-            <div>
-                <h2 class="fw-800 mb-0 text-white letter-spacing-1 text-shadow-white" style="font-size: 2rem;">Assign Role</h2>
+            <div class="text-center">
+                <h2 class="fw-800 mb-0 text-white letter-spacing-1 text-shadow-white" style="font-size: 1.5rem;">Assign Role</h2>
             </div>
         </div>
 
@@ -154,7 +154,7 @@
             </div>
 
             <!-- Actions -->
-            <div class="d-flex flex-wrap justify-content-end gap-3 mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.05);">
+            <div class="d-flex flex-column flex-sm-row flex-wrap justify-content-end gap-3 mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.05);">
                 <a href="{{ route('admin.dashboard') }}" class="btn-outline btn-reset" style="text-decoration: none;">
                     Cancel
                 </a>

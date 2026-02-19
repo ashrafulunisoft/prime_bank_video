@@ -1,6 +1,6 @@
 @extends('layouts.receptionist')
 
-@section('title', 'Visitor Details - UCB Bank')
+@section('title', 'Visitor Details - Prime Bank Limited')
 
 @section('content')
 <div class="role-container">
@@ -10,7 +10,7 @@
             <div class="d-flex align-items-center gap-3">
                 <div class="logo-vms" style="width: 44px; height: 44px; font-size: 1.2rem;">V</div>
                 <div>
-                    <h6 class="fw-800 mb-0 text-white text-shadow-white">UCB BANK</h6>
+                    <h6 class="fw-800 mb-0 text-white text-shadow-white">Prime Bank Limited</h6>
                     <span class="permission-title" style="font-size: 0.7rem; margin: 0; text-shadow-blue">VISITOR SYSTEM</span>
                 </div>
             </div>

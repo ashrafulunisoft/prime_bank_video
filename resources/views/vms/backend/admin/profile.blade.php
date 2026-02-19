@@ -5,19 +5,19 @@
 @section('content')
 <div class="glass-card glass-card-dark">
     <!-- Header -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.5rem;">
-        <div class="d-flex align-items-center gap-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center align-items-md-center gap-3 gap-md-0" style="margin-bottom: 2.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.5rem;">
+        <div class="d-flex align-items-center gap-3 text-center text-md-start">
             {{-- <div class="logo-vms" style="width: 44px; height: 44px; font-size: 1.2rem;">V</div> --}}
-            <div class="text-center gap-3 mb-3 ">
-                <img class="bg-white " src="{{ asset('vms/logo/primebank_logo.png') }}" style="height: 80px; width: 100px; border-radius:10px;" alt="Prime Bank Logo">
+            <div class="mb-3 mb-md-0">
+                <img class="bg-white" src="{{ asset('vms/logo/primebank_logo.png') }}" style="height: 70px; width: 200px; border-radius:10px;" alt="Prime Bank Logo">
             </div>
 
             <div>
-                <h6 class="fw-800 mb-0 text-white text-shadow-white" style="font-size: 1.1rem;">Prime Bank Limited</h6>
+                <h6 class="fw-800 mb-0 text-white text-shadow-white" style="font-size: 1rem;">Prime Bank Limited</h6>
                 <span class="permission-title" style="font-size: 0.7rem; margin: 0; text-shadow-blue">ADMIN PANEL</span>
             </div>
         </div>
-        <h2 class="fw-800 mb-0 text-white letter-spacing-1 text-shadow-white" style="font-size: 2rem;">My Profile</h2>
+        <h2 class="fw-800 mb-0 text-white letter-spacing-1 text-shadow-white text-center" style="font-size: 1.5rem;">My Profile</h2>
     </div>
 
     <!-- Profile Information -->
@@ -91,7 +91,7 @@
     </div>
 
     <!-- Actions -->
-    <div class="d-flex gap-3 justify-content-center">
+    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
         <button class="btn-edit-profile" onclick="openEditModal()" style="padding: 0.75rem 2rem; border-radius: 100px; border: none; cursor: pointer;">
             <i class="fas fa-edit me-2"></i>Edit Profile
         </button>
