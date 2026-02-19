@@ -18,15 +18,16 @@
 
     <style>
     :root {
-        /* --bg-page: linear-gradient(135deg, #0bd696 0%, #0d5540 100%); */
-        --bg-page: linear-gradient(135deg, #4ab59a 0%, #0d5540 100%);
-        --sidebar-bg: #0a3d2a;
-        --accent-green: #0bd696;
-        --accent-dark-green: #0d5540;
-        --glass-card: rgba(13, 85, 64, 0.7);
+        --bg-page: radial-gradient(circle at center, #101d42 0%, #060b1d 100%);
+        --sidebar-bg: #111a30;
+        --accent-indigo: #4f46e5;
+        --accent-blue: #3b82f6;
+        --accent-pink: #db2777;
+        --glass-card: rgba(15, 23, 42, 0.7);
         --glass-border: rgba(255, 255, 255, 0.08);
-        --neon-green: 0 0 20px rgba(11, 214, 150, 0.4), 0 0 40px rgba(11, 214, 150, 0.2);
-        --text-muted: #a8e6cf;
+        --neon-blue: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.2);
+        --neon-indigo: 0 8px 25px rgba(79, 70, 229, 0.4);
+        --text-muted: #94a3b8;
     }
 
     body {
@@ -52,10 +53,10 @@
         background: rgba(255, 255, 255, 0.03);
         backdrop-filter: blur(35px);
         -webkit-backdrop-filter: blur(35px);
-        border: 1px solid rgba(11, 214, 150, 0.3);
+        border: 1px solid rgba(59, 130, 246, 0.2);
         border-radius: 40px;
         padding: 4rem;
-        box-shadow: 0 30px 100px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(11, 214, 150, 0.1);
+        box-shadow: 0 30px 100px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(59, 130, 246, 0.05);
         position: relative;
     }
 
@@ -63,7 +64,7 @@
         background: rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(11, 214, 150, 0.3);
+        border: 1px solid rgba(59, 130, 246, 0.2);
         border-radius: 24px;
         padding: 3rem 2.5rem;
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -83,16 +84,16 @@
         left: 0;
         right: 0;
         height: 4px;
-        background: linear-gradient(90deg, var(--accent-green), var(--accent-dark-green));
+        background: linear-gradient(90deg, var(--accent-indigo), var(--accent-blue));
         transform: scaleX(0);
         transition: transform 0.4s ease;
     }
 
     .role-card:hover {
         transform: translateY(-10px);
-        border-color: rgba(54, 117, 97, 0.8);
-        box-shadow: 0 20px 60px rgba(11, 214, 150, 0.5), inset 0 0 40px rgba(11, 214, 150, 0.15), 0 0 80px rgba(11, 214, 150, 0.3);
-        background: rgba(11, 214, 150, 0.08);
+        border-color: rgba(79, 70, 229, 0.8);
+        box-shadow: 0 20px 60px rgba(59, 130, 246, 0.5), inset 0 0 40px rgba(59, 130, 246, 0.15), 0 0 80px rgba(59, 130, 246, 0.3);
+        background: rgba(59, 130, 246, 0.08);
     }
 
     .role-card:hover::before {
@@ -101,12 +102,12 @@
 
     .role-card:hover .role-icon {
         transform: scale(1.1);
-        box-shadow: 0 15px 50px rgba(11, 214, 150, 0.6), 0 0 100px rgba(11, 214, 150, 0.3);
+        box-shadow: 0 15px 50px rgba(59, 130, 246, 0.6), 0 0 100px rgba(59, 130, 246, 0.3);
     }
 
     .role-card:hover .role-title {
-        color: #0bd696;
-        text-shadow: 0 0 30px rgba(11, 214, 150, 0.5);
+        color: #3b82f6;
+        text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
     }
 
     .role-card:hover .role-description {
@@ -131,7 +132,7 @@
         position: absolute;
         inset: -4px;
         border-radius: 24px;
-        background: linear-gradient(135deg, var(--accent-green), var(--accent-dark-green));
+        background: linear-gradient(135deg, var(--accent-indigo), var(--accent-blue));
         z-index: -1;
         opacity: 0;
         transition: opacity 0.4s ease;
@@ -142,18 +143,18 @@
     }
 
     .role-icon.registration {
-        background: linear-gradient(135deg, #0bd696, #0d5540);
-        box-shadow: 0 10px 30px rgba(11, 214, 150, 0.4);
+        background: linear-gradient(135deg, #4f46e5, #3b82f6);
+        box-shadow: 0 10px 30px rgba(79, 70, 229, 0.4);
     }
 
     .role-icon.login {
-        background: linear-gradient(135deg, #10b981, #059669);
-        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
     }
 
     .role-icon.dashboard {
-        background: linear-gradient(135deg, #14b8a6, #0d9488);
-        box-shadow: 0 10px 30px rgba(20, 184, 166, 0.4);
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
     }
 
     .role-title {
@@ -166,7 +167,7 @@
     }
 
     .role-description {
-        color: #a8e6cf;
+        color: #94a3b8;
         font-size: 0.9rem;
         line-height: 1.6;
         text-align: center;
@@ -180,7 +181,7 @@
         opacity: 0;
         transform: translateX(-10px);
         transition: all 0.4s ease;
-        color: var(--accent-green);
+        color: var(--accent-blue);
     }
 
     .role-card:hover .role-arrow {
@@ -194,7 +195,7 @@
         text-align: center;
         margin-bottom: 1rem;
         letter-spacing: -1px;
-        background: linear-gradient(135deg, #ffffff 0%, #a8e6cf 100%);
+        background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -214,7 +215,7 @@
 
     .divider {
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(11, 214, 150, 0.3), transparent);
+        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent);
         margin: 0;
     }
 
@@ -555,13 +556,13 @@
         <div class="glass-card-dark">
             <!-- Logo -->
             <div class="text-center gap-3 mb-3 ">
-                <img class="bg-white " src="{{ asset('vms/logo/pragatiLogo.png') }}" style="height: 80px; width: 150px; border-radius:10px;" alt="UCB Bank Logo">
+                <img class="bg-white " src="{{ asset('vms/logo/primebank_logo.png') }}" style="height: 70px; width: 250px; border-radius:10px;" alt="UCB Bank Logo">
             </div>
 
             <!-- Header -->
-            <h1 class="page-title ">Pragati Life Insurance</h1>
-            <p class="page-subtitle text-dark">
-                Welcome to Pragati Life Insurance. Please select your role to continue.
+            <h1 class="page-title ">Prime Bank Limited</h1>
+            <p class="page-subtitle text-white">
+                Welcome to Prime Bank Limited. Please select a option to continue.
             </p>
 
             <hr class="divider mb-4">
@@ -620,7 +621,7 @@
 
             <!-- Footer Info -->
             <div class="text-center mt-5 pt-4">
-                <p class="mb-0 text-dark" style="font-size: 0.85rem; color: #a8e6cf;">
+                <p class="mb-0 text-dark" style="font-size: 0.85rem; color: #94a3b8;">
                     <i class="fas fa-shield-alt me-2"></i>
                     Secure &bull; Reliable &bull; Efficient
                 </p>
