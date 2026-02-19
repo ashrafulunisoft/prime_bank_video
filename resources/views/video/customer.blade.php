@@ -47,6 +47,58 @@
         font-size: 14px;
     }
     
+    .fullscreen-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+    
+    .fullscreen-btn:hover {
+        background: rgba(40, 167, 69, 0.9);
+        transform: scale(1.1);
+    }
+    
+    .exit-fullscreen-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        cursor: pointer;
+        font-size: 24px;
+        z-index: 10000;
+        display: none;
+        transition: all 0.3s;
+    }
+    
+    .exit-fullscreen-btn.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .exit-fullscreen-btn:hover {
+        background: #dc3545;
+        transform: scale(1.1);
+    }
+    
     .controls {
         display: flex;
         justify-content: center;
@@ -165,11 +217,17 @@
         <div class="row">
             <div class="col-lg-9">
                 <div class="video-container">
-                    <div class="video-wrapper">
+                    <div class="video-wrapper" id="local-video-wrapper">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen('local-video-wrapper')" title="Full screen">
+                            <i class="fas fa-expand"></i>
+                        </button>
                         <div id="local-video" style="width: 100%; height: 100%;"></div>
                         <span class="video-label">You</span>
                     </div>
-                    <div class="video-wrapper">
+                    <div class="video-wrapper" id="remote-video-wrapper">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen('remote-video-wrapper')" title="Full screen">
+                            <i class="fas fa-expand"></i>
+                        </button>
                         <div id="remote-video" style="width: 100%; height: 100%;"></div>
                         <span class="video-label" id="remote-label">Waiting for agent...</span>
                     </div>
@@ -189,6 +247,11 @@
                         <i class="fas fa-phone-slash"></i>
                     </button>
                 </div>
+                
+                <!-- Exit Fullscreen Button -->
+                <button class="exit-fullscreen-btn" id="exit-fullscreen-btn" onclick="exitFullscreen()" title="Exit Fullscreen">
+                    <i class="fas fa-compress"></i>
+                </button>
             </div>
             
             <div class="col-lg-3">
@@ -724,6 +787,9 @@
             console.error('Error ending call:', error);
         }
         
+        // Exit fullscreen if active
+        exitFullscreen();
+        
         // Cleanup all tracks
         if (localAudioTrack) {
             localAudioTrack.close();
@@ -744,6 +810,65 @@
         
         showFeedback();
     }
+    
+    // Fullscreen Functions
+    let isFullscreen = false;
+    let fullscreenTarget = null;
+    
+    function toggleFullscreen(elementId) {
+        const element = document.getElementById(elementId);
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        
+        if (!isFullscreen) {
+            // Enter fullscreen
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen();
+            }
+            
+            isFullscreen = true;
+            fullscreenTarget = elementId;
+            exitBtn.classList.add('active');
+        }
+    }
+    
+    function exitFullscreen() {
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        
+        isFullscreen = false;
+        fullscreenTarget = null;
+        exitBtn.classList.remove('active');
+    }
+    
+    // Listen for fullscreen change events
+    document.addEventListener('fullscreenchange', function() {
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        if (!document.fullscreenElement) {
+            isFullscreen = false;
+            fullscreenTarget = null;
+            exitBtn.classList.remove('active');
+        }
+    });
+    
+    document.addEventListener('webkitfullscreenchange', function() {
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        if (!document.webkitFullscreenElement) {
+            isFullscreen = false;
+            fullscreenTarget = null;
+            exitBtn.classList.remove('active');
+        }
+    });
 
     // Show Feedback
     function showFeedback() {
