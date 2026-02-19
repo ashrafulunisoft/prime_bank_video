@@ -140,6 +140,7 @@
         border: 1px solid #e9ecef;
         display: flex;
         flex-direction: column;
+        height: calc(100vh - 200px);
     }
     
     .chat-header {
@@ -198,6 +199,180 @@
         font-size: 72px;
         font-weight: bold;
     }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .video-container {
+            height: calc(100vh - 180px);
+        }
+        
+        .chat-panel {
+            height: calc(100vh - 180px) !important;
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .video-container {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+        
+        .video-wrapper {
+            height: 300px;
+            min-height: 250px;
+        }
+        
+        .chat-panel {
+            height: 400px !important;
+            margin-top: 20px;
+        }
+        
+        .col-lg-9, .col-lg-3 {
+            width: 100%;
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        
+        .controls {
+            padding: 15px;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 15px !important;
+        }
+        
+        .video-wrapper {
+            height: 250px;
+            min-height: 200px;
+        }
+        
+        .control-btn {
+            width: 45px;
+            height: 45px;
+            font-size: 18px;
+        }
+        
+        .controls {
+            padding: 12px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .chat-panel {
+            height: 350px !important;
+        }
+        
+        .fullscreen-btn {
+            width: 30px;
+            height: 30px;
+            font-size: 14px;
+        }
+        
+        .exit-fullscreen-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+        
+        .queue-info {
+            padding: 20px;
+        }
+        
+        .queue-position {
+            font-size: 56px;
+        }
+        
+        #request-section {
+            padding: 30px 15px !important;
+        }
+        
+        #request-section h2 {
+            font-size: 24px;
+        }
+        
+        #request-section p {
+            font-size: 14px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .video-wrapper {
+            height: 200px;
+            min-height: 180px;
+        }
+        
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+        
+        .controls {
+            padding: 10px;
+        }
+        
+        .chat-panel {
+            height: 300px !important;
+        }
+        
+        .chat-input input {
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        .queue-position {
+            font-size: 48px;
+        }
+        
+        #request-section h2 {
+            font-size: 20px;
+        }
+    }
+    
+    /* Touch-friendly improvements */
+    @media (hover: none) and (pointer: coarse) {
+        .control-btn {
+            width: 55px;
+            height: 55px;
+        }
+        
+        .fullscreen-btn {
+            opacity: 0.8;
+        }
+        
+        .fullscreen-btn:hover {
+            opacity: 1;
+        }
+    }
+    
+    /* Landscape mobile optimization */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .video-wrapper {
+            height: 180px;
+            min-height: 150px;
+        }
+        
+        .chat-panel {
+            height: 250px !important;
+        }
+        
+        .controls {
+            padding: 8px;
+        }
+        
+        .queue-position {
+            font-size: 36px;
+        }
+    }
 </style>
 @endpush
 
@@ -255,7 +430,7 @@
             </div>
             
             <div class="col-lg-3">
-                <div class="chat-panel" style="height: calc(100vh - 200px);">
+                <div class="chat-panel">
                     <div class="chat-header">
                         <i class="fas fa-comments"></i> Chat
                     </div>
