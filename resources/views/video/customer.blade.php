@@ -457,8 +457,9 @@
         
         console.log('Published local tracks');
         
-        // Show call interface
+        // Show call interface and hide request/queue sections
         document.getElementById('request-section').style.display = 'none';
+        document.getElementById('queue-status').style.display = 'none';
         document.getElementById('call-interface').style.display = 'block';
 
         // Load existing chat messages
