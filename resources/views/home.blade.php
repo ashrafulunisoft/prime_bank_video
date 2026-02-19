@@ -568,7 +568,7 @@
             <hr class="divider mb-4">
 
             <!-- Role Cards -->
-            <div class="row g-4">
+            <div class="row d-flex justify-content-center  g-4">
                 <!-- Registration Card -->
                 <div class="col-lg-4 col-md-6">
                     <a href="{{ route('register') }}" class="role-card">
@@ -602,7 +602,7 @@
                 </div>
 
                 <!-- Live Dashboard Card -->
-                <div class="col-lg-4 col-md-6">
+                {{-- <div class="col-lg-4 col-md-6">
                     <a href="{{ route('chatbot.index') }}" class="role-card">
                         <div class="role-icon dashboard">
                             <i class="fas fa-comment-dots"></i> 
@@ -615,7 +615,7 @@
                             <i class="fas fa-arrow-right"></i>
                         </div>
                     </a>
-                </div>
+                </div> --}}
 
             </div>
 
