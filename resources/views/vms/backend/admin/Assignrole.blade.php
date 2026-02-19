@@ -8,10 +8,10 @@
             <div class="d-flex align-items-center gap-3">
                 {{-- <div class="logo-vms" style="width: 44px; height: 44px; font-size: 1.2rem;">V</div> --}}
                 <div class="text-center gap-3 mb-3 ">
-                    <img class="bg-white " src="{{ asset('vms/logo/ucb-bank-logo-bg_removed.png') }}" style="height: 80px; width: 100px; border-radius:10px;" alt="UCB Bank Logo">
+                    <img class="bg-white " src="{{ asset('vms/logo/primebank_logo.png') }}" style="height: 80px; width: 100px; border-radius:10px;" alt="Prime Bank Logo">
                 </div>
                 <div>
-                    <h6 class="fw-800 mb-0 text-white text-shadow-white">UCB BANK</h6>
+                    <h6 class="fw-800 mb-0 text-white text-shadow-white">Prime Bank Limited</h6>
                     <span class="permission-title" style="font-size: 0.7rem; margin: 0; text-shadow-blue">VISITOR SYSTEM</span>
                 </div>
             </div>

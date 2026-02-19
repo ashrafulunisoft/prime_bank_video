@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UCB Bank - Visitor Registration</title>
+    <title>Prime Bank Limited - Visitor Registration</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -255,7 +255,7 @@
             <div class="d-flex align-items-center gap-3">
                 <div class="logo-v">V</div>
                 <div class="brand-text">
-                    <h2>UCB BANK</h2>
+                    <h2>Prime Bank Limited</h2>
                     <span>VISITOR SYSTEM</span>
                 </div>
             </div>

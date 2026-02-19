@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Live Dashboard - UCB Bank</title>
+    <title>Live Dashboard - Prime Bank Limited</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts: Inter -->
@@ -307,7 +307,7 @@
                 <div class="d-flex align-items-center gap-3">
                     <div class="logo-vms" style="width: 44px; height: 44px; font-size: 1.2rem;">V</div>
                     <div>
-                        <h6 class="fw-800 mb-0 text-white text-shadow-white">UCB BANK</h6>
+                        <h6 class="fw-800 mb-0 text-white text-shadow-white">Prime Bank Limited</h6>
                         <span class="permission-title" style="font-size: 0.7rem; margin: 0; text-shadow-blue">VISITOR SYSTEM</span>
                     </div>
                 </div>

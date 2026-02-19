@@ -9,7 +9,7 @@
         <div class="d-flex align-items-center gap-3">
             <div class="logo-vms" style="width: 44px; height: 44px; font-size: 1.2rem;">V</div>
             <div>
-                <h6 class="fw-800 mb-0 text-white text-shadow-white" style="font-size: 1.1rem;">UCB BANK</h6>
+                <h6 class="fw-800 mb-0 text-white text-shadow-white" style="font-size: 1.1rem;">Prime Bank Limited</h6>
                 <span class="permission-title" style="font-size: 0.7rem; margin: 0; text-shadow-blue">ADMIN PANEL</span>
             </div>
         </div>

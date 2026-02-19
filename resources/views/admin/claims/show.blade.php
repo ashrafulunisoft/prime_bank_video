@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Claim Details - UCB Bank')
+@section('title', 'Claim Details - Prime Bank Limited')
 
 @section('content')
     <!-- Header -->
@@ -33,7 +33,7 @@
             <div class="d-flex align-items-center gap-3">
                 <div class="logo-vms" style="width: 44px; height: 44px; font-size: 1.2rem; background: #fff; color: #1e293b; border-radius: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(255,255,255,0.2);">C</div>
                 <div>
-                    <h6 class="fw-800 mb-0 text-white text-shadow-white">UCB BANK</h6>
+                    <h6 class="fw-800 mb-0 text-white text-shadow-white">Prime Bank Limited</h6>
                     <span class="permission-title" style="font-size: 0.7rem; margin: 0; text-shadow-blue">ADMIN PANEL</span>
                 </div>
             </div>
