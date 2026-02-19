@@ -15,6 +15,23 @@
     };
 </script>
 <style>
+    :root {
+        --bg-page: linear-gradient(135deg, #0bd696 0%, #0d5540 100%);
+        --sidebar-bg: #0a3d2a;
+        --accent-green: #0bd696;
+        --accent-dark-green: #0d5540;
+        --text-muted: #a8e6cf;
+    }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background: var(--bg-page);
+        background-attachment: fixed;
+        min-height: 100vh;
+        color: #fff;
+        margin: 0;
+    }
+    
     .video-container {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -40,11 +57,67 @@
         position: absolute;
         bottom: 10px;
         left: 10px;
-        background: rgba(0,0,0,0.7);
+        background: rgba(13, 85, 64, 0.8);
         color: white;
         padding: 5px 15px;
         border-radius: 20px;
         font-size: 14px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+    
+    .fullscreen-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(13, 85, 64, 0.8);
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 10;
+    }
+    
+    .fullscreen-btn:hover {
+        background: rgba(11, 214, 150, 0.9);
+        transform: scale(1.1);
+    }
+    
+    .exit-fullscreen-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        cursor: pointer;
+        font-size: 24px;
+        z-index: 10000;
+        display: none;
+        transition: all 0.3s;
+    }
+    
+    .exit-fullscreen-btn.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .exit-fullscreen-btn:hover {
+        background: #dc3545;
+        transform: scale(1.1);
     }
     
     .controls {
@@ -52,7 +125,10 @@
         justify-content: center;
         gap: 15px;
         padding: 20px;
-        background: #f8f9fa;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
         margin-top: 20px;
     }
@@ -73,27 +149,31 @@
     }
     
     .control-btn.active {
-        background: #28a745;
+        background: #0bd696;
         color: white;
     }
     
     .control-btn.inactive {
-        background: #6c757d;
+        background: rgba(13, 85, 64, 0.6);
         color: white;
     }
     
     .chat-panel {
-        background: #fff;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
         border-radius: 12px;
-        border: 1px solid #e9ecef;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
         flex-direction: column;
+        height: calc(100vh - 200px);
     }
     
     .chat-header {
         padding: 15px;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         font-weight: bold;
+        color: #fff;
     }
     
     .chat-messages {
@@ -110,18 +190,19 @@
     }
     
     .chat-message.sent {
-        background: #007bff;
+        background: #0bd696;
         color: white;
         margin-left: auto;
     }
     
     .chat-message.received {
-        background: #e9ecef;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
     }
     
     .chat-input {
         padding: 15px;
-        border-top: 1px solid #e9ecef;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
         gap: 10px;
     }
@@ -129,22 +210,210 @@
     .chat-input input {
         flex: 1;
         padding: 12px;
-        border: 1px solid #ddd;
+        border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 25px;
         outline: none;
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+    
+    .chat-input input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
     }
     
     .queue-info {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
+        padding: 30px;
         text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(11, 214, 150, 0.05);
     }
     
     .queue-position {
         font-size: 72px;
         font-weight: bold;
+        color: #0bd696;
+    }
+    
+    .text-white {
+        color: #fff !important;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .video-container {
+            height: calc(100vh - 180px);
+        }
+        
+        .chat-panel {
+            height: calc(100vh - 180px) !important;
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .video-container {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+        
+        .video-wrapper {
+            height: 300px;
+            min-height: 250px;
+        }
+        
+        .chat-panel {
+            height: 400px !important;
+            margin-top: 20px;
+        }
+        
+        .col-lg-9, .col-lg-3 {
+            width: 100%;
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        
+        .controls {
+            padding: 15px;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 15px !important;
+        }
+        
+        .video-wrapper {
+            height: 250px;
+            min-height: 200px;
+        }
+        
+        .control-btn {
+            width: 45px;
+            height: 45px;
+            font-size: 18px;
+        }
+        
+        .controls {
+            padding: 12px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .chat-panel {
+            height: 350px !important;
+        }
+        
+        .fullscreen-btn {
+            width: 30px;
+            height: 30px;
+            font-size: 14px;
+        }
+        
+        .exit-fullscreen-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+        
+        .queue-info {
+            padding: 20px;
+        }
+        
+        .queue-position {
+            font-size: 56px;
+        }
+        
+        #request-section {
+            padding: 30px 15px !important;
+        }
+        
+        #request-section h2 {
+            font-size: 24px;
+        }
+        
+        #request-section p {
+            font-size: 14px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .video-wrapper {
+            height: 200px;
+            min-height: 180px;
+        }
+        
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+        
+        .controls {
+            padding: 10px;
+        }
+        
+        .chat-panel {
+            height: 300px !important;
+        }
+        
+        .chat-input input {
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        .queue-position {
+            font-size: 48px;
+        }
+        
+        #request-section h2 {
+            font-size: 20px;
+        }
+    }
+    
+    /* Touch-friendly improvements */
+    @media (hover: none) and (pointer: coarse) {
+        .control-btn {
+            width: 55px;
+            height: 55px;
+        }
+        
+        .fullscreen-btn {
+            opacity: 0.8;
+        }
+        
+        .fullscreen-btn:hover {
+            opacity: 1;
+        }
+    }
+    
+    /* Landscape mobile optimization */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .video-wrapper {
+            height: 180px;
+            min-height: 150px;
+        }
+        
+        .chat-panel {
+            height: 250px !important;
+        }
+        
+        .controls {
+            padding: 8px;
+        }
+        
+        .queue-position {
+            font-size: 36px;
+        }
     }
 </style>
 @endpush
@@ -153,11 +422,13 @@
 <div class="container-fluid py-4">
     <!-- Queue Status -->
     <div id="queue-status" class="queue-info mb-4" style="display: none;">
-        <h3>Please wait...</h3>
-        <p>You are in the queue</p>
+        <h3><i class="fas fa-clock"></i> Please wait...</h3>
+        <p class="text-white">You are in the queue</p>
         <div class="queue-position" id="queue-position">#0</div>
-        <p class="mt-3">An agent will be with you shortly</p>
-        <button class="btn btn-light mt-3" onclick="cancelQueue()">Cancel Request</button>
+        <p class="mt-3 text-white">An agent will be with you shortly</p>
+        <button class="btn btn-outline-light mt-3" onclick="cancelQueue()">
+            <i class="fas fa-times"></i> Cancel Request
+        </button>
     </div>
 
     <!-- Call Interface -->
@@ -165,11 +436,17 @@
         <div class="row">
             <div class="col-lg-9">
                 <div class="video-container">
-                    <div class="video-wrapper">
+                    <div class="video-wrapper" id="local-video-wrapper">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen('local-video-wrapper')" title="Full screen">
+                            <i class="fas fa-expand"></i>
+                        </button>
                         <div id="local-video" style="width: 100%; height: 100%;"></div>
                         <span class="video-label">You</span>
                     </div>
-                    <div class="video-wrapper">
+                    <div class="video-wrapper" id="remote-video-wrapper">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen('remote-video-wrapper')" title="Full screen">
+                            <i class="fas fa-expand"></i>
+                        </button>
                         <div id="remote-video" style="width: 100%; height: 100%;"></div>
                         <span class="video-label" id="remote-label">Waiting for agent...</span>
                     </div>
@@ -189,36 +466,41 @@
                         <i class="fas fa-phone-slash"></i>
                     </button>
                 </div>
+                
+                <!-- Exit Fullscreen Button -->
+                <button class="exit-fullscreen-btn" id="exit-fullscreen-btn" onclick="exitFullscreen()" title="Exit Fullscreen">
+                    <i class="fas fa-compress"></i>
+                </button>
             </div>
             
             <div class="col-lg-3">
-                <div class="chat-panel" style="height: calc(100vh - 200px);">
+                <div class="chat-panel">
                     <div class="chat-header">
                         <i class="fas fa-comments"></i> Chat
                     </div>
                     <div class="chat-messages" id="chat-messages"></div>
                     <div class="chat-input">
                         <input type="file" id="file-input" style="display:none" onchange="handleFileSelect(this)">
-                        <button class="btn btn-outline-secondary rounded-circle" onclick="document.getElementById('file-input').click()" title="Attach file" style="padding: 10px;">
+                        <button class="btn btn-outline-light rounded-circle" onclick="document.getElementById('file-input').click()" title="Attach file" style="padding: 10px;">
                             <i class="fas fa-paperclip"></i>
                         </button>
                         <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="handleChatKeypress(event)">
-                        <button class="btn btn-primary rounded-circle" onclick="sendMessage()">
+                        <button class="btn btn-success rounded-circle" onclick="sendMessage()">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                     <!-- File preview -->
-                    <div id="file-preview" style="display:none; padding: 10px 15px; border-top: 1px solid #e9ecef; background: #f8f9fa;">
+                    <div id="file-preview" style="display:none; padding: 10px 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.2);">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-file mr-2"></i>
-                                <span id="file-name" style="font-size: 13px;"></span>
+                                <i class="fas fa-file mr-2" style="color: #0bd696;"></i>
+                                <span id="file-name" style="font-size: 13px; color: #fff;"></span>
                             </div>
                             <div>
-                                <button class="btn btn-sm btn-primary mr-1" id="upload-btn" onclick="uploadFile()">
+                                <button class="btn btn-sm btn-success mr-1" id="upload-btn" onclick="uploadFile()">
                                     <i class="fas fa-upload"></i> Upload
                                 </button>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="clearFile()">
+                                <button class="btn btn-sm btn-outline-light" onclick="clearFile()">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
@@ -230,10 +512,10 @@
     </div>
 
     <!-- Request Button -->
-    <div id="request-section" class="text-center py-5">
+    <div id="request-section" class="queue-info text-center py-5">
         <h2><i class="fas fa-video"></i> Video Call Support</h2>
         <p class="text-white">Connect with a customer care representative via video call</p>
-        <button class="btn btn-primary btn-lg px-5" onclick="requestCall()">
+        <button class="btn btn-success btn-lg px-5 mt-3" onclick="requestCall()">
             <i class="fas fa-phone-alt"></i> Start Video Call
         </button>
    </div>
@@ -394,8 +676,9 @@
         
         console.log('Published local tracks');
         
-        // Show call interface
+        // Show call interface and hide request/queue sections
         document.getElementById('request-section').style.display = 'none';
+        document.getElementById('queue-status').style.display = 'none';
         document.getElementById('call-interface').style.display = 'block';
 
         // Load existing chat messages
@@ -724,6 +1007,9 @@
             console.error('Error ending call:', error);
         }
         
+        // Exit fullscreen if active
+        exitFullscreen();
+        
         // Cleanup all tracks
         if (localAudioTrack) {
             localAudioTrack.close();
@@ -744,6 +1030,65 @@
         
         showFeedback();
     }
+    
+    // Fullscreen Functions
+    let isFullscreen = false;
+    let fullscreenTarget = null;
+    
+    function toggleFullscreen(elementId) {
+        const element = document.getElementById(elementId);
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        
+        if (!isFullscreen) {
+            // Enter fullscreen
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen();
+            }
+            
+            isFullscreen = true;
+            fullscreenTarget = elementId;
+            exitBtn.classList.add('active');
+        }
+    }
+    
+    function exitFullscreen() {
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        
+        isFullscreen = false;
+        fullscreenTarget = null;
+        exitBtn.classList.remove('active');
+    }
+    
+    // Listen for fullscreen change events
+    document.addEventListener('fullscreenchange', function() {
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        if (!document.fullscreenElement) {
+            isFullscreen = false;
+            fullscreenTarget = null;
+            exitBtn.classList.remove('active');
+        }
+    });
+    
+    document.addEventListener('webkitfullscreenchange', function() {
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        if (!document.webkitFullscreenElement) {
+            isFullscreen = false;
+            fullscreenTarget = null;
+            exitBtn.classList.remove('active');
+        }
+    });
 
     // Show Feedback
     function showFeedback() {

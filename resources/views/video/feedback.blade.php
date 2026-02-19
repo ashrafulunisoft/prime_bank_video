@@ -22,7 +22,7 @@
                         <div class="form-group text-center mb-4">
                             <label class="d-block mb-3">Rate your experience</label>
                             <div class="rating-stars">
-                                @for($i = 1; $i <= 5; $i++)
+                                @for($i = 5; $i >= 1; $i--)
                                     <input type="radio" name="rating" value="{{ $i }}" id="rating-{{ $i }}" class="d-none" required>
                                     <label for="rating-{{ $i }}" class="star-label">
                                         <i class="fas fa-star star-icon" data-rating="{{ $i }}"></i>
@@ -52,8 +52,8 @@
 <style>
     .rating-stars {
         display: inline-flex;
-        flex-direction: row-reverse;
         gap: 10px;
+        flex-direction: row-reverse;
     }
     
     .star-label {
@@ -69,12 +69,7 @@
     
     .star-label:hover .star-icon,
     .star-label:hover ~ .star-label .star-icon,
-    input:checked ~ .star-label .star-icon,
-    input:checked + .star-label .star-icon,
-    input:checked + label + .star-label .star-icon,
-    input:checked + label + label + .star-label .star-icon,
-    input:checked + label + label + label + .star-label .star-icon,
-    input:checked + label + label + label + label + .star-label .star-icon {
+    input:checked ~ .star-label .star-icon {
         color: #ffc107;
     }
     

@@ -56,6 +56,92 @@
         -webkit-backdrop-filter: blur(10px);
     }
     
+    .fullscreen-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(13, 85, 64, 0.8);
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 10;
+    }
+    
+    .fullscreen-btn:hover {
+        background: rgba(11, 214, 150, 0.9);
+        transform: scale(1.1);
+    }
+    
+    .video-wrapper.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 9999;
+        border-radius: 0;
+    }
+    
+    .fullscreen-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9998;
+    }
+    
+    .fullscreen-overlay.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .fullscreen-overlay .video-wrapper {
+        width: 90vw;
+        height: 80vh;
+    }
+    
+    .exit-fullscreen-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        cursor: pointer;
+        font-size: 24px;
+        z-index: 10000;
+        display: none;
+        transition: all 0.3s;
+    }
+    
+    .exit-fullscreen-btn.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .exit-fullscreen-btn:hover {
+        background: #dc3545;
+        transform: scale(1.1);
+    }
+    
     .controls {
         display: flex;
         justify-content: center;
@@ -102,6 +188,7 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
         flex-direction: column;
+        height: calc(100vh - 200px);
     }
     
     .chat-header {
@@ -206,13 +293,195 @@
     .text-muted {
         color: #fff !important;
     }
+    
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .video-container {
+            height: calc(100vh - 180px);
+        }
+        
+        .chat-panel {
+            height: calc(100vh - 180px) !important;
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .video-container {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+        
+        .video-wrapper {
+            height: 300px;
+            min-height: 250px;
+        }
+        
+        .chat-panel {
+            height: 400px !important;
+            margin-top: 20px;
+        }
+        
+        .col-lg-9, .col-lg-3 {
+            width: 100%;
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        
+        .controls {
+            padding: 15px;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 15px !important;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .stat-card {
+            padding: 15px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+        }
+        
+        .video-wrapper {
+            height: 250px;
+            min-height: 200px;
+        }
+        
+        .control-btn {
+            width: 45px;
+            height: 45px;
+            font-size: 18px;
+        }
+        
+        .controls {
+            padding: 12px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .chat-panel {
+            height: 350px !important;
+        }
+        
+        .fullscreen-btn {
+            width: 30px;
+            height: 30px;
+            font-size: 14px;
+        }
+        
+        .exit-fullscreen-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+        
+        .status-card {
+            padding: 15px;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+        
+        .btn-group .btn {
+            width: 100%;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .stat-value {
+            font-size: 24px;
+        }
+        
+        .video-wrapper {
+            height: 200px;
+            min-height: 180px;
+        }
+        
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+        
+        .controls {
+            padding: 10px;
+        }
+        
+        .chat-panel {
+            height: 300px !important;
+        }
+        
+        .chat-input input {
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        .queue-position {
+            font-size: 48px;
+        }
+    }
+    
+    /* Touch-friendly improvements */
+    @media (hover: none) and (pointer: coarse) {
+        .control-btn {
+            width: 55px;
+            height: 55px;
+        }
+        
+        .fullscreen-btn {
+            opacity: 0.8;
+        }
+        
+        .fullscreen-btn:hover {
+            opacity: 1;
+        }
+    }
+    
+    /* Landscape mobile optimization */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .video-wrapper {
+            height: 180px;
+            min-height: 150px;
+        }
+        
+        .chat-panel {
+            height: 250px !important;
+        }
+        
+        .controls {
+            padding: 8px;
+        }
+    }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid py-4">
     <!-- Stats -->
-    <div class="stats-grid">
+    <div class="stats-grid" id="stats-section">
         <div class="stat-card">
             <div class="stat-value">{{ $todayCalls }}</div>
             <div class="stat-label">Calls Today</div>
@@ -232,7 +501,7 @@
     </div>
 
     <!-- Status Toggle -->
-    <div class="status-card mb-4">
+    <div class="status-card mb-4" id="status-section">
         <div class="d-flex align-items-center justify-content-between">
             <div>
                 <h5 class="mb-1">Your Status</h5>
@@ -268,11 +537,17 @@
         <div class="row">
             <div class="col-lg-9">
                 <div class="video-container">
-                    <div class="video-wrapper">
+                    <div class="video-wrapper" id="local-video-wrapper">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen('local-video-wrapper')" title="Full screen">
+                            <i class="fas fa-expand"></i>
+                        </button>
                         <div id="local-video" style="width: 100%; height: 100%;"></div>
                         <span class="video-label">You</span>
                     </div>
-                    <div class="video-wrapper">
+                    <div class="video-wrapper" id="remote-video-wrapper">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen('remote-video-wrapper')" title="Full screen">
+                            <i class="fas fa-expand"></i>
+                        </button>
                         <div id="remote-video" style="width: 100%; height: 100%;"></div>
                         <span class="video-label" id="remote-label">Customer</span>
                     </div>
@@ -292,36 +567,41 @@
                         <i class="fas fa-phone-slash"></i>
                     </button>
                 </div>
+                
+                <!-- Exit Fullscreen Button -->
+                <button class="exit-fullscreen-btn" id="exit-fullscreen-btn" onclick="exitFullscreen()" title="Exit Fullscreen">
+                    <i class="fas fa-compress"></i>
+                </button>
             </div>
             
             <div class="col-lg-3">
-                <div class="chat-panel" style="height: calc(100vh - 200px);">
+                <div class="chat-panel">
                     <div class="chat-header">
                         <i class="fas fa-comments"></i> Chat with Customer
                     </div>
                     <div class="chat-messages" id="chat-messages"></div>
                     <div class="chat-input">
                         <input type="file" id="file-input" style="display:none" onchange="handleFileSelect(this)">
-                        <button class="btn btn-outline-secondary rounded-circle" onclick="document.getElementById('file-input').click()" title="Attach file" style="padding: 10px;">
+                        <button class="btn btn-outline-light rounded-circle" onclick="document.getElementById('file-input').click()" title="Attach file" style="padding: 10px;">
                             <i class="fas fa-paperclip"></i>
                         </button>
                         <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="handleChatKeypress(event)">
-                        <button class="btn btn-primary rounded-circle" onclick="sendMessage()">
+                        <button class="btn btn-success rounded-circle" onclick="sendMessage()">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                     <!-- File preview -->
-                    <div id="file-preview" style="display:none; padding: 10px 15px; border-top: 1px solid #e9ecef; background: #f8f9fa;">
+                    <div id="file-preview" style="display:none; padding: 10px 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.2);">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-file mr-2"></i>
-                                <span id="file-name" style="font-size: 13px;"></span>
+                                <i class="fas fa-file mr-2" style="color: #0bd696;"></i>
+                                <span id="file-name" style="font-size: 13px; color: #fff;"></span>
                             </div>
                             <div>
-                                <button class="btn btn-sm btn-primary mr-1" id="upload-btn" onclick="uploadFile()">
+                                <button class="btn btn-sm btn-success mr-1" id="upload-btn" onclick="uploadFile()">
                                     <i class="fas fa-upload"></i> Upload
                                 </button>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="clearFile()">
+                                <button class="btn btn-sm btn-outline-light" onclick="clearFile()">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
@@ -445,6 +725,9 @@
         
         console.log('Agent published local tracks');
         
+        // Hide all info sections and show call interface
+        document.getElementById('stats-section').style.display = 'none';
+        document.getElementById('status-section').style.display = 'none';
         document.getElementById('next-call-section').style.display = 'none';
         document.getElementById('call-interface').style.display = 'block';
         document.getElementById('remote-label').textContent = data.customer_name || 'Customer';
@@ -811,6 +1094,9 @@
             console.error('Error ending call:', error);
         }
         
+        // Exit fullscreen if active
+        exitFullscreen();
+        
         // Cleanup all tracks
         if (localAudioTrack) {
             localAudioTrack.close();
@@ -831,5 +1117,64 @@
         
         location.reload();
     }
+    
+    // Fullscreen Functions
+    let isFullscreen = false;
+    let fullscreenTarget = null;
+    
+    function toggleFullscreen(elementId) {
+        const element = document.getElementById(elementId);
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        
+        if (!isFullscreen) {
+            // Enter fullscreen
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen();
+            }
+            
+            isFullscreen = true;
+            fullscreenTarget = elementId;
+            exitBtn.classList.add('active');
+        }
+    }
+    
+    function exitFullscreen() {
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        
+        isFullscreen = false;
+        fullscreenTarget = null;
+        exitBtn.classList.remove('active');
+    }
+    
+    // Listen for fullscreen change events
+    document.addEventListener('fullscreenchange', function() {
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        if (!document.fullscreenElement) {
+            isFullscreen = false;
+            fullscreenTarget = null;
+            exitBtn.classList.remove('active');
+        }
+    });
+    
+    document.addEventListener('webkitfullscreenchange', function() {
+        const exitBtn = document.getElementById('exit-fullscreen-btn');
+        if (!document.webkitFullscreenElement) {
+            isFullscreen = false;
+            fullscreenTarget = null;
+            exitBtn.classList.remove('active');
+        }
+    });
 </script>
 @endpush
