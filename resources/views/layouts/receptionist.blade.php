@@ -898,9 +898,15 @@
                 </a> --}}
 
                 <!-- Video Call - Always visible -->
-                <a href="{{ route('video.agent.dashboard') }}" class="sidebar-item {{ request()->routeIs('video.*') ? 'active' : '' }}">
-                    <i class="fas fa-video"></i> Video Call
-                </a>
+                @if(auth()->user()->roles->pluck('name')->contains('visitor'))
+                    <a href="{{ route('video.call') }}" class="sidebar-item {{ request()->routeIs('video.*') ? 'active' : '' }}">
+                        <i class="fas fa-video"></i> Video Call
+                    </a>
+                @else
+                    <a href="{{ route('video.agent.dashboard') }}" class="sidebar-item {{ request()->routeIs('video.*') ? 'active' : '' }}">
+                        <i class="fas fa-video"></i> Video Call
+                    </a>
+                @endif
 
                 <!-- Settings - Always visible -->
                 {{-- <a href="#" class="sidebar-item">
