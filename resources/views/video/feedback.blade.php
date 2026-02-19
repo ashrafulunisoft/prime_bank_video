@@ -52,7 +52,6 @@
 <style>
     .rating-stars {
         display: inline-flex;
-        flex-direction: row-reverse;
         gap: 10px;
     }
     
@@ -69,12 +68,7 @@
     
     .star-label:hover .star-icon,
     .star-label:hover ~ .star-label .star-icon,
-    input:checked ~ .star-label .star-icon,
-    input:checked + .star-label .star-icon,
-    input:checked + label + .star-label .star-icon,
-    input:checked + label + label + .star-label .star-icon,
-    input:checked + label + label + label + .star-label .star-icon,
-    input:checked + label + label + label + label + .star-label .star-icon {
+    input:checked ~ .star-label .star-icon {
         color: #ffc107;
     }
     
