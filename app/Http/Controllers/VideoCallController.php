@@ -569,9 +569,9 @@ class VideoCallController extends Controller
     {
         $user = Auth::user();
         $agent = Agent::where('user_id', $user->id)->first();
-        
-        // Auto-create agent record for staff/receptionist users
-        if (!$agent && ($user->hasRole('staff') || $user->hasRole('receptionist'))) {
+
+        // Auto-create agent record for all users
+        if (!$agent) {
             $agent = Agent::create([
                 'user_id' => $user->id,
                 'name' => $user->name,
@@ -580,10 +580,6 @@ class VideoCallController extends Controller
                 'department' => 'Customer Support',
                 'status' => 'offline',
             ]);
-        }
-        
-        if (!$agent) {
-            return redirect()->route('home')->with('error', 'You are not registered as an agent.');
         }
 
         $todayCalls = $agent->callSessions()
@@ -812,6 +808,12 @@ class VideoCallController extends Controller
             'comment' => $request->input('comment'),
             'customer_name' => $user->name,
         ]);
+
+        // Update agent's average rating
+        $agent = Agent::find($session->agent_id);
+        if ($agent) {
+            $agent->recordCall($session->duration, $request->input('rating'));
+        }
 
         return redirect()->route('dashboard')->with('success', 'Thank you for your feedback!');
     }
