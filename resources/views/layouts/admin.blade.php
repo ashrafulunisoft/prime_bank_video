@@ -567,7 +567,7 @@
                 <a href="{{ route('admin.profile') }}" class="sidebar-item {{ request()->routeIs('admin.profile') ? 'active' : '' }}"><i class="fas fa-user"></i> My Profile</a>
 
                 {{-- RBAC Roles (Commented Out - Uncomment if needed) --}}
-                {{--
+                
                 <div class="sidebar-dropdown">
                     <a href="#" class="sidebar-item d-flex align-items-center" onclick="toggleSubmenu(event)">
                         <i class="fas fa-user-shield"></i> RBAC Roles
@@ -578,7 +578,7 @@
                         <a href="{{ route('admin.role.assign.create') }}" class="submenu-item"><i class="fas fa-user-tag"></i> Assign Role</a>
                     </div>
                 </div>
-                --}}
+               
 
                 {{-- Logout --}}
                 <a href="{{ route('logout') }}" class="sidebar-item text-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
