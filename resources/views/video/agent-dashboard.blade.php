@@ -3,6 +3,7 @@
 @section('title', 'Agent Dashboard - Video Call')
 
 @push('styles')
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.22.0.js"></script>
 <style>
     :root {
         --bg-page: linear-gradient(135deg, #0bd696 0%, #0d5540 100%);
