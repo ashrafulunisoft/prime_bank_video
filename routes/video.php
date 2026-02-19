@@ -39,6 +39,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/video/chat/send', [VideoCallController::class, 'sendChatMessage'])->name('video.chat.send');
     Route::get('/video/chat/messages', [VideoCallController::class, 'getChatMessages'])->name('video.chat.messages');
     Route::get('/video/chat/unread-count', [VideoCallController::class, 'getUnreadCount'])->name('video.chat.unread');
+    Route::post('/video/chat/upload-file', [VideoCallController::class, 'uploadFile'])->name('video.chat.upload-file');
 });
 
 // Agent routes
