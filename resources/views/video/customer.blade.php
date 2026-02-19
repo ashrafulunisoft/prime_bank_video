@@ -15,6 +15,23 @@
     };
 </script>
 <style>
+    :root {
+        --bg-page: linear-gradient(135deg, #0bd696 0%, #0d5540 100%);
+        --sidebar-bg: #0a3d2a;
+        --accent-green: #0bd696;
+        --accent-dark-green: #0d5540;
+        --text-muted: #a8e6cf;
+    }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background: var(--bg-page);
+        background-attachment: fixed;
+        min-height: 100vh;
+        color: #fff;
+        margin: 0;
+    }
+    
     .video-container {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -40,11 +57,13 @@
         position: absolute;
         bottom: 10px;
         left: 10px;
-        background: rgba(0,0,0,0.7);
+        background: rgba(13, 85, 64, 0.8);
         color: white;
         padding: 5px 15px;
         border-radius: 20px;
         font-size: 14px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
     
     .fullscreen-btn {
@@ -55,7 +74,7 @@
         height: 36px;
         border-radius: 50%;
         border: none;
-        background: rgba(0,0,0,0.7);
+        background: rgba(13, 85, 64, 0.8);
         color: white;
         cursor: pointer;
         font-size: 16px;
@@ -63,11 +82,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         z-index: 10;
     }
     
     .fullscreen-btn:hover {
-        background: rgba(40, 167, 69, 0.9);
+        background: rgba(11, 214, 150, 0.9);
         transform: scale(1.1);
     }
     
@@ -104,7 +125,10 @@
         justify-content: center;
         gap: 15px;
         padding: 20px;
-        background: #f8f9fa;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
         margin-top: 20px;
     }
@@ -125,19 +149,21 @@
     }
     
     .control-btn.active {
-        background: #28a745;
+        background: #0bd696;
         color: white;
     }
     
     .control-btn.inactive {
-        background: #6c757d;
+        background: rgba(13, 85, 64, 0.6);
         color: white;
     }
     
     .chat-panel {
-        background: #fff;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
         border-radius: 12px;
-        border: 1px solid #e9ecef;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
         flex-direction: column;
         height: calc(100vh - 200px);
@@ -145,8 +171,9 @@
     
     .chat-header {
         padding: 15px;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         font-weight: bold;
+        color: #fff;
     }
     
     .chat-messages {
@@ -163,18 +190,19 @@
     }
     
     .chat-message.sent {
-        background: #007bff;
+        background: #0bd696;
         color: white;
         margin-left: auto;
     }
     
     .chat-message.received {
-        background: #e9ecef;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
     }
     
     .chat-input {
         padding: 15px;
-        border-top: 1px solid #e9ecef;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
         gap: 10px;
     }
@@ -182,22 +210,36 @@
     .chat-input input {
         flex: 1;
         padding: 12px;
-        border: 1px solid #ddd;
+        border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 25px;
         outline: none;
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+    
+    .chat-input input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
     }
     
     .queue-info {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
+        padding: 30px;
         text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(11, 214, 150, 0.05);
     }
     
     .queue-position {
         font-size: 72px;
         font-weight: bold;
+        color: #0bd696;
+    }
+    
+    .text-white {
+        color: #fff !important;
     }
 
     /* Responsive Design */
@@ -380,11 +422,13 @@
 <div class="container-fluid py-4">
     <!-- Queue Status -->
     <div id="queue-status" class="queue-info mb-4" style="display: none;">
-        <h3>Please wait...</h3>
-        <p>You are in the queue</p>
+        <h3><i class="fas fa-clock"></i> Please wait...</h3>
+        <p class="text-white">You are in the queue</p>
         <div class="queue-position" id="queue-position">#0</div>
-        <p class="mt-3">An agent will be with you shortly</p>
-        <button class="btn btn-light mt-3" onclick="cancelQueue()">Cancel Request</button>
+        <p class="mt-3 text-white">An agent will be with you shortly</p>
+        <button class="btn btn-outline-light mt-3" onclick="cancelQueue()">
+            <i class="fas fa-times"></i> Cancel Request
+        </button>
     </div>
 
     <!-- Call Interface -->
@@ -437,26 +481,26 @@
                     <div class="chat-messages" id="chat-messages"></div>
                     <div class="chat-input">
                         <input type="file" id="file-input" style="display:none" onchange="handleFileSelect(this)">
-                        <button class="btn btn-outline-secondary rounded-circle" onclick="document.getElementById('file-input').click()" title="Attach file" style="padding: 10px;">
+                        <button class="btn btn-outline-light rounded-circle" onclick="document.getElementById('file-input').click()" title="Attach file" style="padding: 10px;">
                             <i class="fas fa-paperclip"></i>
                         </button>
                         <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="handleChatKeypress(event)">
-                        <button class="btn btn-primary rounded-circle" onclick="sendMessage()">
+                        <button class="btn btn-success rounded-circle" onclick="sendMessage()">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                     <!-- File preview -->
-                    <div id="file-preview" style="display:none; padding: 10px 15px; border-top: 1px solid #e9ecef; background: #f8f9fa;">
+                    <div id="file-preview" style="display:none; padding: 10px 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.2);">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-file mr-2"></i>
-                                <span id="file-name" style="font-size: 13px;"></span>
+                                <i class="fas fa-file mr-2" style="color: #0bd696;"></i>
+                                <span id="file-name" style="font-size: 13px; color: #fff;"></span>
                             </div>
                             <div>
-                                <button class="btn btn-sm btn-primary mr-1" id="upload-btn" onclick="uploadFile()">
+                                <button class="btn btn-sm btn-success mr-1" id="upload-btn" onclick="uploadFile()">
                                     <i class="fas fa-upload"></i> Upload
                                 </button>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="clearFile()">
+                                <button class="btn btn-sm btn-outline-light" onclick="clearFile()">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
@@ -468,10 +512,10 @@
     </div>
 
     <!-- Request Button -->
-    <div id="request-section" class="text-center py-5">
+    <div id="request-section" class="queue-info text-center py-5">
         <h2><i class="fas fa-video"></i> Video Call Support</h2>
         <p class="text-white">Connect with a customer care representative via video call</p>
-        <button class="btn btn-primary btn-lg px-5" onclick="requestCall()">
+        <button class="btn btn-success btn-lg px-5 mt-3" onclick="requestCall()">
             <i class="fas fa-phone-alt"></i> Start Video Call
         </button>
    </div>

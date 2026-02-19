@@ -481,7 +481,7 @@
 @section('content')
 <div class="container-fluid py-4">
     <!-- Stats -->
-    <div class="stats-grid">
+    <div class="stats-grid" id="stats-section">
         <div class="stat-card">
             <div class="stat-value">{{ $todayCalls }}</div>
             <div class="stat-label">Calls Today</div>
@@ -501,7 +501,7 @@
     </div>
 
     <!-- Status Toggle -->
-    <div class="status-card mb-4">
+    <div class="status-card mb-4" id="status-section">
         <div class="d-flex align-items-center justify-content-between">
             <div>
                 <h5 class="mb-1">Your Status</h5>
@@ -582,26 +582,26 @@
                     <div class="chat-messages" id="chat-messages"></div>
                     <div class="chat-input">
                         <input type="file" id="file-input" style="display:none" onchange="handleFileSelect(this)">
-                        <button class="btn btn-outline-secondary rounded-circle" onclick="document.getElementById('file-input').click()" title="Attach file" style="padding: 10px;">
+                        <button class="btn btn-outline-light rounded-circle" onclick="document.getElementById('file-input').click()" title="Attach file" style="padding: 10px;">
                             <i class="fas fa-paperclip"></i>
                         </button>
                         <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="handleChatKeypress(event)">
-                        <button class="btn btn-primary rounded-circle" onclick="sendMessage()">
+                        <button class="btn btn-success rounded-circle" onclick="sendMessage()">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                     <!-- File preview -->
-                    <div id="file-preview" style="display:none; padding: 10px 15px; border-top: 1px solid #e9ecef; background: #f8f9fa;">
+                    <div id="file-preview" style="display:none; padding: 10px 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.2);">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-file mr-2"></i>
-                                <span id="file-name" style="font-size: 13px;"></span>
+                                <i class="fas fa-file mr-2" style="color: #0bd696;"></i>
+                                <span id="file-name" style="font-size: 13px; color: #fff;"></span>
                             </div>
                             <div>
-                                <button class="btn btn-sm btn-primary mr-1" id="upload-btn" onclick="uploadFile()">
+                                <button class="btn btn-sm btn-success mr-1" id="upload-btn" onclick="uploadFile()">
                                     <i class="fas fa-upload"></i> Upload
                                 </button>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="clearFile()">
+                                <button class="btn btn-sm btn-outline-light" onclick="clearFile()">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
@@ -725,6 +725,9 @@
         
         console.log('Agent published local tracks');
         
+        // Hide all info sections and show call interface
+        document.getElementById('stats-section').style.display = 'none';
+        document.getElementById('status-section').style.display = 'none';
         document.getElementById('next-call-section').style.display = 'none';
         document.getElementById('call-interface').style.display = 'block';
         document.getElementById('remote-label').textContent = data.customer_name || 'Customer';
