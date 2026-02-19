@@ -1047,4 +1047,85 @@ class VideoCallController extends Controller
             'unread_count' => $count,
         ]);
     }
+
+    /**
+     * Upload a file and send it as a chat message.
+     */
+    public function uploadFile(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|max:10240', // 10MB max
+            'session_id' => 'required|exists:call_sessions,id'
+        ]);
+
+        $user = Auth::user();
+        $sessionId = $request->input('session_id');
+        $file = $request->file('file');
+
+        // Verify session exists and user is part of it
+        $session = CallSession::find($sessionId);
+        if (!$session) {
+            return response()->json(['error' => 'Session not found.'], 404);
+        }
+
+        // Check if user is customer or agent in this session
+        $isCustomer = $session->user_id === $user->id;
+        $isAgent = $session->agent_id && $session->agent->user_id === $user->id;
+
+        if (!$isCustomer && !$isAgent) {
+            return response()->json(['error' => 'You are not part of this call session.'], 403);
+        }
+
+        try {
+            // Generate unique filename
+            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+            // Store file using Laravel's Storage
+            $path = $file->storeAs('chat-files/' . $sessionId, $filename);
+
+            // Get file URL
+            $url = asset('storage/' . $path);
+
+            // Create chat message with file info
+            $message = "📎 " . $file->getClientOriginalName() . "\n" . $url;
+            $senderType = $isCustomer ? 'customer' : 'agent';
+
+            $chat = VideoCallChat::create([
+                'call_session_id' => $sessionId,
+                'sender_id' => $user->id,
+                'sender_type' => $senderType,
+                'message' => $message,
+                'is_read' => false,
+            ]);
+
+            Log::info('File uploaded and sent in chat', [
+                'session_id' => $sessionId,
+                'sender_id' => $user->id,
+                'sender_type' => $senderType,
+                'file_name' => $file->getClientOriginalName(),
+                'file_size' => $file->getSize(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => [
+                    'id' => $chat->id,
+                    'session_id' => $sessionId,
+                    'sender_id' => $user->id,
+                    'sender_name' => $user->name,
+                    'sender_type' => $senderType,
+                    'message' => $message,
+                    'created_at' => $chat->created_at->toISOString(),
+                ],
+                'file_url' => $url,
+                'file_name' => $file->getClientOriginalName(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error uploading file', [
+                'session_id' => $sessionId,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'Failed to upload file.'], 500);
+        }
+    }
 }

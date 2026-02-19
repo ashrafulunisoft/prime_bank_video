@@ -263,10 +263,31 @@
                     </div>
                     <div class="chat-messages" id="chat-messages"></div>
                     <div class="chat-input">
+                        <input type="file" id="file-input" style="display:none" onchange="handleFileSelect(this)">
+                        <button class="btn btn-outline-secondary rounded-circle" onclick="document.getElementById('file-input').click()" title="Attach file" style="padding: 10px;">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
                         <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="handleChatKeypress(event)">
                         <button class="btn btn-primary rounded-circle" onclick="sendMessage()">
                             <i class="fas fa-paper-plane"></i>
                         </button>
+                    </div>
+                    <!-- File preview -->
+                    <div id="file-preview" style="display:none; padding: 10px 15px; border-top: 1px solid #e9ecef; background: #f8f9fa;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-file mr-2"></i>
+                                <span id="file-name" style="font-size: 13px;"></span>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-primary mr-1" id="upload-btn" onclick="uploadFile()">
+                                    <i class="fas fa-upload"></i> Upload
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="clearFile()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -490,10 +511,16 @@
 
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+        // Convert URLs to clickable links
+        const formattedMessage = escapeHtml(message).replace(
+            /(https?:\/\/[^\s<]+)/g, 
+            '<a href="$1" target="_blank" style="color: inherit; text-decoration: underline;">$1</a>'
+        );
+
         if (senderName) {
-            messageDiv.innerHTML = `<strong style="font-size: 11px; display: block; margin-bottom: 3px;">${senderName} • ${time}</strong>${escapeHtml(message)}`;
+            messageDiv.innerHTML = `<strong style="font-size: 11px; display: block; margin-bottom: 3px;">${senderName} • ${time}</strong>${formattedMessage}`;
         } else {
-            messageDiv.innerHTML = `<span>${escapeHtml(message)}</span><span style="font-size: 10px; display: block; margin-top: 3px; opacity: 0.7;">${time}</span>`;
+            messageDiv.innerHTML = `${formattedMessage}<span style="font-size: 10px; display: block; margin-top: 3px; opacity: 0.7;">${time}</span>`;
         }
 
         messagesDiv.appendChild(messageDiv);
@@ -666,6 +693,70 @@
 
     function handleChatKeypress(event) {
         if (event.key === 'Enter') sendMessage();
+    }
+
+    // File Upload Functions
+    let selectedFile = null;
+
+    function handleFileSelect(input) {
+        const file = input.files[0];
+        if (!file) return;
+        
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File too large (max 10MB)');
+            input.value = '';
+            return;
+        }
+        
+        selectedFile = file;
+        document.getElementById('file-preview').style.display = 'block';
+        document.getElementById('file-name').textContent = file.name;
+    }
+
+    function clearFile() {
+        selectedFile = null;
+        document.getElementById('file-input').value = '';
+        document.getElementById('file-preview').style.display = 'none';
+    }
+
+    async function uploadFile() {
+        if (!selectedFile || !sessionId) {
+            alert('Please select a file');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('session_id', sessionId);
+        
+        const btn = document.getElementById('upload-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+        btn.disabled = true;
+        
+        try {
+            const response = await fetch('/video/chat/upload-file', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                addChatMessage(data.message.message, 'sent', data.message.sender_name);
+                clearFile();
+            } else {
+                alert('Upload failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            alert('Upload error: ' + error.message);
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     }
 
     async function endCall() {
