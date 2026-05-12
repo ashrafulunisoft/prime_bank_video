@@ -1,75 +1,73 @@
 # Laravel Video Calling Platform
 
-A scalable real-time communication platform built with <a href="https://laravel.com">Laravel</a>, <a href="https://reverb.laravel.com">Laravel Reverb</a>, <a href="https://laravel.com/docs/octane">Laravel Octane</a>, <a href="https://roadrunner.dev">RoadRunner</a>, Docker, PostgreSQL, Redis, and GitOps deployment using <a href="https://argo-cd.readthedocs.io">ArgoCD</a>.
+A scalable real-time communication platform built with <a href="https://laravel.com">Laravel</a>, <a href="https://reverb.laravel.com">Laravel Reverb</a>, <a href="https://laravel.com/docs/octane">Laravel Octane</a>, <a href="https://roadrunner.dev">RoadRunner</a>, Docker, NGINX, MySQL, Redis, and GitHub Actions CI/CD.
 
 ---
 
-## 🚀 Features
+# 🚀 Features
 
 * 🎥 One-to-One & Group Video Calling
 * 📺 Screen Sharing
 * 📁 Real-Time File Sharing
+* 💬 Live Chat Messaging
 * 🔔 Real-Time Notifications using Laravel Reverb
-* 💬 Live Messaging
-* 🟢 User Presence Detection
+* 🟢 Online / Offline Presence Detection
 * ⚡ High Performance with Laravel Octane + RoadRunner
-* 🧠 Redis Queue & Broadcasting
-* 🐘 PostgreSQL Database
+* 🔄 Redis Queue & Cache
 * 🐳 Dockerized Infrastructure
-* ☸️ GitOps Deployment using ArgoCD + Kubernetes
 * 🔐 Authentication & Authorization
+* 🚀 CI/CD with GitHub Actions
+* 🌐 NGINX Reverse Proxy
 * 📊 Scalable Architecture
 
 ---
 
 # 🏗️ Tech Stack
 
-| Layer            | Technology                       |
-| ---------------- | -------------------------------- |
-| Backend          | PHP 8.3, Laravel                 |
-| Realtime         | Laravel Reverb, WebSockets       |
-| Video Call       | WebRTC                           |
-| Performance      | Laravel Octane + RoadRunner      |
-| Queue & Cache    | Redis                            |
-| Database         | PostgreSQL                       |
-| Containerization | Docker & Docker Compose          |
-| CI/CD            | GitHub Actions                   |
-| GitOps           | ArgoCD                           |
-| Reverse Proxy    | NGINX                            |
-| Admin DB Tool    | pgAdmin                          |
-| Frontend         | React / Next.js / Vue (Optional) |
+| Layer            | Technology                  |
+| ---------------- | --------------------------- |
+| Backend          | PHP 8.3, Laravel            |
+| Realtime         | Laravel Reverb              |
+| Video Calling    | WebRTC                      |
+| Performance      | Laravel Octane + RoadRunner |
+| Database         | MySQL 8                     |
+| Cache & Queue    | Redis                       |
+| Reverse Proxy    | NGINX                       |
+| Containerization | Docker & Docker Compose     |
+| CI/CD            | GitHub Actions              |
+| Frontend         | React / Vue / Next.js       |
+| Database Tool    | phpMyAdmin                  |
 
 ---
 
 # 📦 System Architecture
 
-```text
-Client Apps
-    │
-    ▼
+```text id="v2t6j9"
+Users
+  │
+  ▼
 NGINX Reverse Proxy
-    │
-    ▼
-Laravel Octane (RoadRunner)
-    │
- ┌──┼───────────────┐
- │  │               │
- ▼  ▼               ▼
-Reverb           Redis Queue
- │                  │
- ▼                  ▼
-WebSocket       Notifications
-Broadcasting    Cache / Queue
+  │
+  ▼
+Laravel Octane + RoadRunner
+  │
+ ├──────────────┐
+ │              │
+ ▼              ▼
+Laravel Reverb  Redis
+ │              │
+ ▼              ▼
+Realtime WS     Queue / Cache
 
-    ▼
-PostgreSQL Database
+        ▼
+      MySQL
 ```
 
 ---
 
 # 📁 Project Structure
 
-```bash
+```bash id="j0v81r"
 project-root/
 │
 ├── app/
@@ -78,19 +76,17 @@ project-root/
 ├── database/
 ├── docker/
 │   ├── nginx/
-│   ├── postgres/
+│   ├── mysql/
 │   ├── redis/
-│   └── pgadmin/
-│
-├── kubernetes/
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   ├── ingress.yaml
-│   └── argocd-app.yaml
+│   └── phpmyadmin/
 │
 ├── routes/
-├── storage/
 ├── resources/
+├── storage/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+│
 ├── docker-compose.yml
 ├── Dockerfile
 └── README.md
@@ -102,25 +98,22 @@ project-root/
 
 * PHP 8.3+
 * Composer
+* Node.js 20+
 * Docker
 * Docker Compose
-* Node.js 20+
-* PostgreSQL
-* Redis
 
 ---
 
 # 🐳 Docker Services
 
-The project includes the following services:
-
-| Service     | Port |
-| ----------- | ---- |
-| Laravel App | 8000 |
-| PostgreSQL  | 5432 |
-| Redis       | 6379 |
-| pgAdmin     | 5050 |
-| Reverb      | 8080 |
+| Service        | Port |
+| -------------- | ---- |
+| Laravel App    | 8000 |
+| NGINX          | 80   |
+| MySQL          | 3306 |
+| Redis          | 6379 |
+| phpMyAdmin     | 8081 |
+| Laravel Reverb | 8080 |
 
 ---
 
@@ -128,19 +121,23 @@ The project includes the following services:
 
 ## Start Containers
 
-```bash
+```bash id="7lmp0j"
 docker compose up -d
 ```
 
+---
+
 ## Stop Containers
 
-```bash
+```bash id="9k7xj4"
 docker compose down
 ```
 
+---
+
 ## Rebuild Containers
 
-```bash
+```bash id="m4tx8u"
 docker compose up -d --build
 ```
 
@@ -150,7 +147,7 @@ docker compose up -d --build
 
 ## Install Dependencies
 
-```bash
+```bash id="7yo6np"
 composer install
 npm install
 ```
@@ -159,28 +156,28 @@ npm install
 
 ## Copy Environment File
 
-```bash
+```bash id="0u8n4a"
 cp .env.example .env
 ```
 
 ---
 
-## Generate App Key
+## Generate Application Key
 
-```bash
+```bash id="5w8n0y"
 php artisan key:generate
 ```
 
 ---
 
-# 🐘 PostgreSQL Configuration
+# 🐬 MySQL Configuration
 
-```env
-DB_CONNECTION=pgsql
-DB_HOST=postgres
-DB_PORT=5432
+```env id="v0n2ms"
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
 DB_DATABASE=video_calling
-DB_USERNAME=postgres
+DB_USERNAME=root
 DB_PASSWORD=secret
 ```
 
@@ -188,7 +185,7 @@ DB_PASSWORD=secret
 
 # 🔴 Redis Configuration
 
-```env
+```env id="l2a0tp"
 REDIS_HOST=redis
 REDIS_PASSWORD=null
 REDIS_PORT=6379
@@ -200,19 +197,23 @@ REDIS_PORT=6379
 
 ## Install Octane
 
-```bash
+```bash id="6a7z0x"
 composer require laravel/octane
 ```
 
+---
+
 ## Install RoadRunner
 
-```bash
+```bash id="0x9m2w"
 composer require spiral/roadrunner-cli spiral/roadrunner-http
 ```
 
+---
+
 ## Install Octane Server
 
-```bash
+```bash id="5e8v9c"
 php artisan octane:install --server=roadrunner
 ```
 
@@ -220,7 +221,7 @@ php artisan octane:install --server=roadrunner
 
 # ▶️ Run Laravel Octane
 
-```bash
+```bash id="8u6s3v"
 php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=8000
 ```
 
@@ -230,21 +231,23 @@ php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=8000
 
 ## Install Reverb
 
-```bash
+```bash id="9z0q2v"
 composer require laravel/reverb
 ```
 
-## Install Reverb
+---
 
-```bash
+## Configure Reverb
+
+```bash id="3j7f8d"
 php artisan reverb:install
 ```
 
 ---
 
-# ▶️ Run Reverb Server
+## Run Reverb Server
 
-```bash
+```bash id="8c5t2u"
 php artisan reverb:start
 ```
 
@@ -252,12 +255,12 @@ php artisan reverb:start
 
 # 🔔 Broadcasting Configuration
 
-```env
+```env id="3r8m5x"
 BROADCAST_CONNECTION=reverb
 
-REVERB_APP_ID=app-id
-REVERB_APP_KEY=app-key
-REVERB_APP_SECRET=app-secret
+REVERB_APP_ID=video-app
+REVERB_APP_KEY=video-key
+REVERB_APP_SECRET=video-secret
 
 REVERB_HOST=0.0.0.0
 REVERB_PORT=8080
@@ -266,40 +269,58 @@ REVERB_SCHEME=http
 
 ---
 
-# 📞 WebRTC Video Calling
+# 🌐 NGINX Configuration
 
-## Features
+Example NGINX Reverse Proxy:
 
-* Peer-to-peer communication
-* STUN/TURN server support
-* Camera & microphone streaming
-* Screen sharing
-* Call recording support (optional)
+```nginx id="0f2l8m"
+server {
+    listen 80;
 
-## Suggested Libraries
+    server_name localhost;
 
-| Purpose         | Library      |
-| --------------- | ------------ |
-| WebRTC Helper   | SimplePeer   |
-| Media Handling  | WebRTC APIs  |
-| Realtime Events | Laravel Echo |
+    location / {
+        proxy_pass http://app:8000;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /app {
+        proxy_pass http://reverb:8080;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+
+        proxy_set_header Host $host;
+    }
+}
+```
 
 ---
 
-# 📁 File Sharing
+# 📞 Video Calling (WebRTC)
 
-## Supported Features
+## Features
 
+* Camera & microphone streaming
+* Peer-to-peer communication
+* Screen sharing
+* STUN/TURN support
+* Live connection state monitoring
+
+---
+
+# 📁 File Sharing Features
+
+* Drag & drop uploads
 * Real-time upload progress
-* Drag & drop upload
-* Secure signed URLs
+* Secure file validation
 * Chunk uploads for large files
-
-## Recommended Storage
-
-* Local Storage
-* AWS S3
-* MinIO
+* Signed download URLs
 
 ---
 
@@ -308,154 +329,153 @@ REVERB_SCHEME=http
 Powered by:
 
 * Laravel Reverb
-* Laravel Echo
 * Redis Pub/Sub
+* Laravel Echo
 
 Examples:
 
-* Incoming call notification
+* Incoming call alerts
 * User online/offline
-* File upload complete
-* New message alerts
+* New message notifications
+* File upload completion
 
 ---
 
-# 🧠 Queue Workers
+# 🧠 Queue Worker
 
-Run Queue Worker:
+## Run Queue Worker
 
-```bash
+```bash id="2h4v9q"
 php artisan queue:work
 ```
 
-Recommended Queue Driver:
+---
 
-```env
+## Queue Driver
+
+```env id="9m3t0r"
 QUEUE_CONNECTION=redis
 ```
 
 ---
 
-# 🛡️ Authentication
+# 🔐 Authentication
 
 Recommended:
 
 * Laravel Sanctum
 * JWT Authentication
-* OAuth2 (optional)
+* OAuth2 (Optional)
 
 ---
 
-# 📊 pgAdmin Access
+# 🗄️ phpMyAdmin Access
 
 | Field    | Value                                          |
 | -------- | ---------------------------------------------- |
-| URL      | [http://localhost:5050](http://localhost:5050) |
-| Email    | [admin@example.com](mailto:admin@example.com)  |
-| Password | admin                                          |
+| URL      | [http://localhost:8081](http://localhost:8081) |
+| Username | root                                           |
+| Password | secret                                         |
 
 ---
 
-# ☸️ Kubernetes Deployment
+# 🚀 GitHub Actions CI/CD
 
-## Apply Kubernetes Resources
+## Workflow Features
 
-```bash
-kubectl apply -f kubernetes/
-```
-
----
-
-# 🚀 ArgoCD GitOps Deployment
-
-## Create ArgoCD Application
-
-```bash
-kubectl apply -f kubernetes/argocd-app.yaml
-```
-
-## Sync Application
-
-```bash
-argocd app sync video-calling-app
-```
+* Install Dependencies
+* Run Tests
+* Build Docker Image
+* Push Docker Image
+* Deploy to Server
 
 ---
 
-# 🔄 CI/CD Pipeline
+# 📁 GitHub Actions Workflow
 
-Example Flow:
+File:
 
-```text
-Developer Push
-      │
-      ▼
-GitHub Actions
-      │
-      ▼
-Docker Build & Push
-      │
-      ▼
-Kubernetes Manifest Update
-      │
-      ▼
-ArgoCD Auto Sync
-      │
-      ▼
-Production Deployment
+```text id="x1r7s9"
+.github/workflows/deploy.yml
 ```
 
----
+Example Workflow:
 
-# 🔥 Performance Optimizations
+```yaml id="5p9z1w"
+name: Deploy Application
 
-* Laravel Octane
-* RoadRunner Worker Pool
-* Redis Cache
-* Database Indexing
-* Queue Offloading
-* WebSocket Scaling
-* CDN for File Delivery
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+
+      - name: Install Dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Run Tests
+        run: php artisan test
+
+      - name: Build Docker Image
+        run: docker build -t video-calling-app .
+
+      - name: Deploy Server
+        run: echo "Deploy Process Here"
+```
 
 ---
 
 # 🧪 Testing
 
-## Run Backend Tests
+## Backend Tests
 
-```bash
+```bash id="0v5y8m"
 php artisan test
 ```
 
-## Run Frontend Tests
+---
 
-```bash
+## Frontend Tests
+
+```bash id="2r7m1x"
 npm run test
 ```
 
 ---
 
-# 🔐 Security Best Practices
+# 🔥 Performance Optimization
 
-* HTTPS/WSS
-* Signed Upload URLs
-* Rate Limiting
-* CSRF Protection
-* WebRTC TURN Authentication
-* File Validation
-* Encrypted Storage
+* Laravel Octane Workers
+* RoadRunner Persistent Workers
+* Redis Cache
+* Database Indexing
+* NGINX Reverse Proxy
+* Queue Offloading
+* Lazy Loading Optimization
 
 ---
 
-# 📈 Future Improvements
+# 🛡️ Security Best Practices
 
-* AI Noise Cancellation
-* Meeting Recording
-* Multi-device Sync
-* Push Notifications
-* E2E Encryption
-* Mobile Apps
-* Live Streaming
+* HTTPS / WSS
+* Rate Limiting
+* CSRF Protection
+* File Validation
+* Secure WebSocket Authentication
+* TURN Authentication
+* Encrypted Environment Variables
 
 ---
 
@@ -463,76 +483,66 @@ npm run test
 
 ## Run Vite
 
-```bash
+```bash id="1j4m9n"
 npm run dev
 ```
 
-## Run Queue
+---
 
-```bash
+## Run Queue Worker
+
+```bash id="9t5v0u"
 php artisan queue:work
 ```
 
+---
+
 ## Run Scheduler
 
-```bash
+```bash id="3m6p8r"
 php artisan schedule:work
 ```
 
+---
+
 ## Run Reverb
 
-```bash
+```bash id="7k0w2x"
 php artisan reverb:start
 ```
 
+---
+
 ## Run Octane
 
-```bash
+```bash id="6q4x9z"
 php artisan octane:start --server=roadrunner
 ```
 
 ---
 
-# 📜 License
+# 📈 Future Improvements
 
-MIT License
-
----
-
-# 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Commit changes
-4. Push branch
-5. Open Pull Request
+* Mobile Applications
+* Push Notifications
+* AI Noise Cancellation
+* Meeting Recording
+* Live Streaming
+* End-to-End Encryption
+* Multi-device Sync
 
 ---
 
-# ⭐ Recommended Production Stack
+# 📊 Realtime Communication Flow
 
-| Component      | Recommendation       |
-| -------------- | -------------------- |
-| Reverse Proxy  | NGINX                |
-| SSL            | Let's Encrypt        |
-| Monitoring     | Prometheus + Grafana |
-| Logs           | Loki                 |
-| Object Storage | MinIO / S3           |
-| TURN Server    | Coturn               |
-| Kubernetes     | K3s / EKS / AKS      |
-
----
-
-# 📞 Core Realtime Flow
-
-```text
-User A Initiates Call
+```text id="1q8v4z"
+User A Starts Call
         │
         ▼
-Laravel API Authenticates
+Laravel API Authentication
         │
         ▼
-Reverb Broadcasts Event
+Reverb Broadcast Event
         │
         ▼
 User B Receives Notification
@@ -546,6 +556,22 @@ Video / Audio / Screen Stream
 
 ---
 
+# 🤝 Contributing
+
+1. Fork Repository
+2. Create Feature Branch
+3. Commit Changes
+4. Push Branch
+5. Open Pull Request
+
+---
+
+# 📜 License
+
+MIT License
+
+---
+
 # 🙌 Credits
 
 Built with:
@@ -554,9 +580,9 @@ Built with:
 * Laravel Reverb
 * Laravel Octane
 * RoadRunner
-* PostgreSQL
 * Redis
+* MySQL
 * Docker
-* ArgoCD
-* Kubernetes
+* GitHub Actions
+* NGINX
 * WebRTC
